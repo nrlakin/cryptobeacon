@@ -1,0 +1,34 @@
+<project buildenvironment="{067c869e-5bd9-4595-9f4c-60348133ad8e}"
+		 buildenvironmentname="uEnergy"
+		 buildenvironmentoption="UENERGYSDK"
+		 executionenvironment="{39e65239-59f4-4d78-b84a-26eaebfaa4de}"
+		 executionenvironmentname="uEnergy"
+		 executionenvironmentoption="XAP2+ P0 ELF DWARF BINUTILS UENERGYSDK"
+ 		 name="CSR uEnergy" >
+ <folder name="C Files" >
+  <extension name="c" />
+ </folder>
+ <folder name="Header Files" >
+  <extension name="h" />
+ </folder>
+ <folder name="Assembler Files" >
+  <extension name="asm" />
+ </folder>
+ <folder name="GATT db files" >
+  <extension name="db" />
+ </folder>
+ <properties currentconfiguration="Release" >
+  <configuration name="Release" >
+   <property key="debugtransport" ></property>
+   <property key="defines" ></property>
+   <property key="libs" ></property>
+   <property key="output" ></property>
+  </configuration>
+  <configuration name="Debug" >
+   <property key="debugtransport" ></property>
+   <property key="defines" ></property>
+   <property key="libs" ></property>
+   <property key="output" ></property>
+  </configuration>
+ </properties>
+</project>

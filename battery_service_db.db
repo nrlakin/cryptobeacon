@@ -1,0 +1,58 @@
+/******************************************************************************
+ *  Copyright (c) 2013 - 2016 Qualcomm Technologies International, Ltd.
+ *  Part of CSR uEnergy SDK 2.6.0
+ *  Application version 2.6.0.0
+ *
+ *  FILE
+ *      battery_service_db.db
+ *
+ *  DESCRIPTION
+ *      This file defines the Battery Service in JSON format. This file is 
+ *      included in the main application data base file which is used to 
+ *      produce ATT flat data base.
+ *
+ *****************************************************************************/
+#ifndef __BATTERY_SERVICE_DB__
+#define __BATTERY_SERVICE_DB__
+
+#include "battery_uuids.h"
+#include "user_config.h"
+
+/* For service details, refer http://developer.bluetooth.org/gatt/services/
+ * Pages/ServiceViewer.aspx?u=org.bluetooth.service.battery_service.xml
+ */
+
+/* Primary service declaration of Battery service */
+primary_service {
+    uuid : UUID_BATTERY_SERVICE,
+    name : "BATTERY_SERVICE", /* Name will be used in handle name macro */
+
+    /* Battery level characteristic */
+
+    /* Battery Level characteristic supports IRQ flag, thereby reads and writes on 
+     * characteristic value are handled by application.
+     */
+    
+    characteristic {
+        uuid : UUID_BATTERY_LEVEL,
+        name : "BATT_LEVEL",
+#ifdef PAIRING_SUPPORT
+        flags : [FLAG_IRQ, FLAG_ENCR_R],
+#else
+        flags : [FLAG_IRQ],
+#endif /*PAIRING_SUPPORT*/
+        properties : [read, notify],
+        value : 0x00,
+        
+        client_config {
+#ifdef PAIRING_SUPPORT
+        flags : [FLAG_IRQ, FLAG_ENCR_W],
+#else
+        flags : [FLAG_IRQ],
+#endif /*PAIRING_SUPPORT*/
+            name : "BATT_LEVEL_C_CFG"
+        }
+            
+    }      
+}
+#endif /* __BATTERY_SERVICE_DB__ */

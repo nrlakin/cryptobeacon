@@ -1,0 +1,19 @@
+/******************************************************************************
+ *  Copyright (c) 2013 - 2016 Qualcomm Technologies International, Ltd.
+ *  Part of CSR uEnergy SDK 2.6.0
+ *  Application version 2.6.0.0
+ *
+ * FILE
+ *     app_gatt_db.db
+ *
+ *  DESCRIPTION
+ *      This file defines the application ATT data base in JSON format.
+ *      This file is taken as input by gattdbgen tool to produce ATT 
+ *      flat data base. 
+ *
+ *****************************************************************************/
+
+#include "gap_service_db.db"
+#include "gatt_service_db.db"
+#include "dev_info_service_db.db"
+#include "battery_service_db.db"
