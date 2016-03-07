@@ -38,12 +38,19 @@
 #define HANDLE_DEVICE_INFO_PNP_ID       (0x0019)
 #define ATTR_LEN_DEVICE_INFO_PNP_ID     (7)
 #define HANDLE_BATTERY_SERVICE          (0x001a)
-#define HANDLE_BATTERY_SERVICE_END      (0xffff)
+#define HANDLE_BATTERY_SERVICE_END      (0x001d)
 #define ATTR_LEN_BATTERY_SERVICE        (2)
 #define HANDLE_BATT_LEVEL               (0x001c)
 #define ATTR_LEN_BATT_LEVEL             (1)
 #define HANDLE_BATT_LEVEL_C_CFG         (0x001d)
 #define ATTR_LEN_BATT_LEVEL_C_CFG       (0)
+#define HANDLE_AUTH_SERVICE             (0x001e)
+#define HANDLE_AUTH_SERVICE_END         (0xffff)
+#define ATTR_LEN_AUTH_SERVICE           (16)
+#define HANDLE_INPUT_TOKEN              (0x0020)
+#define ATTR_LEN_INPUT_TOKEN            (1)
+#define HANDLE_SIGNED_TOKEN             (0x0022)
+#define ATTR_LEN_SIGNED_TOKEN           (1)
 
 extern uint16 *GattGetDatabase(uint16 *len);
 

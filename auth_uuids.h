@@ -1,5 +1,5 @@
-#ifndef _AUTH_UUIDS_H_
-#define _AUTH_UUIDS_H_
+#ifndef __AUTH_UUIDS_H__
+#define __AUTH_UUIDS_H__
 
 /*
  * Authentication Service UUIDS

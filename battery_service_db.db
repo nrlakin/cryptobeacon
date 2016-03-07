@@ -54,5 +54,5 @@ primary_service {
         }
             
     }      
-}
+},
 #endif /* __BATTERY_SERVICE_DB__ */

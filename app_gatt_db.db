@@ -17,3 +17,4 @@
 #include "gatt_service_db.db"
 #include "dev_info_service_db.db"
 #include "battery_service_db.db"
+#include "auth_service_db.db"

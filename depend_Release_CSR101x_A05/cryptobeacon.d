@@ -44,4 +44,5 @@ depend_Release_CSR101x_A05/cryptobeacon.o: cryptobeacon.c \
   C:/CSR_uEnergy_SDK-2.5.0.20/tools/include/CSR101x_A05/bluetooth.h \
   C:/CSR_uEnergy_SDK-2.5.0.20/tools/include/CSR101x_A05/debug.h \
   C:/CSR_uEnergy_SDK-2.5.0.20/tools/include/CSR101x_A05/uart.h \
-  user_config.h gap_service.h gap_conn_params.h battery_service.h
+  user_config.h gap_service.h gap_conn_params.h battery_service.h \
+  auth_service.h

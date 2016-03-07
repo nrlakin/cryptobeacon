@@ -219,5 +219,36 @@ primary_service {
         }
 
     }
+},
+# 20 "app_gatt_db.db" 2
+# 1 "auth_service_db.db" 1
+# 18 "auth_service_db.db"
+# 1 "auth_uuids.h" 1
+# 19 "auth_service_db.db" 2
+
+
+
+
+
+
+primary_service {
+    uuid : 0x58b8d07b991c4b91913b991881d26a0e,
+    name : "AUTH_SERVICE",
+
+    characteristic {
+        uuid : 0xbe77ec1a1f0b4f45a9d7d0f3a06852b4,
+        name : "INPUT_TOKEN",
+        flags : [FLAG_IRQ],
+        properties : [write],
+        value : 0x00
+    },
+
+    characteristic {
+        uuid : 0x6d17f43438c5466e860368c61ddc3c66,
+        name : "SIGNED_TOKEN",
+        flags : [FLAG_IRQ],
+        properties : [read, notify],
+        value : 0x00
+    }
 }
-# 19 "app_gatt_db.db" 2
+# 20 "app_gatt_db.db" 2

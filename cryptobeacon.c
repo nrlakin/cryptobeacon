@@ -43,6 +43,7 @@
 #include "debug_interface.h"/* Application debug routines */
 #include "gap_service.h"    /* GAP service interface */
 #include "battery_service.h"/* Battery service interface */
+#include "auth_service.h"   /* Authentication service interface */
 
 /*============================================================================*
  *  Private Definitions
@@ -346,6 +347,9 @@ static void appDataInit(void)
 
     /* Battery Service data initialisation */
     BatteryDataInit();
+    
+    /* Auth Service data initialization */
+    InitAuthServiceData();
 
     /* Call the required service data initialisation APIs from here */
 }

@@ -38,6 +38,8 @@
 #include "battery_uuids.h"  /* Battery Service UUIDs */
 #include "dev_info_uuids.h" /* Device Information Service UUIDs */
 #include "dev_info_service.h"/* Device Information Service interface */
+#include "auth_uuids.h"
+#include "auth_service.h"
 
 /*============================================================================*
  *  Private Definitions
@@ -286,7 +288,7 @@ static void gattSetAdvertParams(TYPED_BD_ADDR_T *p_addr, bool fast_connection)
     /* Setup ADVERTISEMENT DATA */
 
     /* Add UUID list of the services supported by the device */
-    length = GetSupported16BitUUIDServiceList(advert_data);
+    length = GetSupported128BitUUIDServiceList(advert_data);    
 
     /* One added for Length field, which will be added to Adv Data by GAP 
      * layer 
@@ -298,6 +300,20 @@ static void gattSetAdvertParams(TYPED_BD_ADDR_T *p_addr, bool fast_connection)
     {
         ReportPanic(app_panic_set_advert_data);
     }
+    
+    /* Add 16 bit uuids */
+    //length = GetSupported16BitUUIDServiceList(advert_data);
+
+    /* One added for Length field, which will be added to Adv Data by GAP 
+     * layer 
+     */
+    //length_added_to_adv += (length + 1);
+
+    //if (LsStoreAdvScanData(length, advert_data, 
+    //                    ad_src_advertise) != ls_err_none)
+    //{
+    //    ReportPanic(app_panic_set_advert_data);
+    //}
 
     /* One added for Length field, which will be added to Adv Data by GAP 
      * layer 
@@ -396,6 +412,9 @@ extern void HandleAccessRead(GATT_ACCESS_IND_T *p_ind)
     {
         /* Attribute handle belongs to BATTERY service */
         BatteryHandleAccessRead(p_ind);
+    } else if (AuthCheckHandleRange(p_ind->handle)) {
+        /* attribute handle belongs to authentication service */
+        AuthHandleAccessRead(p_ind);
     }
     else
     {
@@ -439,6 +458,9 @@ extern void HandleAccessWrite(GATT_ACCESS_IND_T *p_ind)
     {
         /* Attribute handle belongs to BATTERY service */
         BatteryHandleAccessWrite(p_ind);
+    } else if (AuthCheckHandleRange(p_ind->handle)) {
+        /* attribute handle belongs to auth service */
+        AuthHandleAccessWrite(p_ind);
     }
     else
     {
@@ -548,6 +570,50 @@ extern uint16 GetSupported16BitUUIDServiceList(uint8 *p_service_uuid_ad)
 
 }
 
+/*----------------------------------------------------------------------------*
+ *  NAME
+ *      GetSupported128BitUUIDServiceList
+ *
+ *  DESCRIPTION
+ *      This function prepares the list of supported 128-bit service UUIDs to be 
+ *      added to Advertisement data. It also adds the relevant AD Type to the 
+ *      start of AD array.
+ *
+ *  PARAMETERS
+ *      p_service_uuid_ad [out] AD Service UUID list
+ *
+ *  RETURNS
+ *      Size of AD Service UUID list
+ *----------------------------------------------------------------------------*/
+extern uint16 GetSupported128BitUUIDServiceList(uint8 *p_service_uuid_ad)
+{
+    uint8   size_data = 0;              /* Size of AD Service UUID list */
+
+    /* Add 16-bit UUID for supported main service */
+    p_service_uuid_ad[size_data++] = AD_TYPE_SERVICE_UUID_128BIT_LIST;
+
+    /* Add authentication service UUID */
+    p_service_uuid_ad[size_data++] = UUID_AUTH_SERVICE_16;
+    p_service_uuid_ad[size_data++] = UUID_AUTH_SERVICE_15;
+    p_service_uuid_ad[size_data++] = UUID_AUTH_SERVICE_14;
+    p_service_uuid_ad[size_data++] = UUID_AUTH_SERVICE_13;
+    p_service_uuid_ad[size_data++] = UUID_AUTH_SERVICE_12;
+    p_service_uuid_ad[size_data++] = UUID_AUTH_SERVICE_11;
+    p_service_uuid_ad[size_data++] = UUID_AUTH_SERVICE_10;
+    p_service_uuid_ad[size_data++] = UUID_AUTH_SERVICE_9;
+    p_service_uuid_ad[size_data++] = UUID_AUTH_SERVICE_8;
+    p_service_uuid_ad[size_data++] = UUID_AUTH_SERVICE_7;
+    p_service_uuid_ad[size_data++] = UUID_AUTH_SERVICE_6;
+    p_service_uuid_ad[size_data++] = UUID_AUTH_SERVICE_5;
+    p_service_uuid_ad[size_data++] = UUID_AUTH_SERVICE_4;
+    p_service_uuid_ad[size_data++] = UUID_AUTH_SERVICE_3;
+    p_service_uuid_ad[size_data++] = UUID_AUTH_SERVICE_2;
+    p_service_uuid_ad[size_data++] = UUID_AUTH_SERVICE_1;
+
+    /* Return the size of AD service data. */
+    return ((uint16)size_data);
+
+}
 /*----------------------------------------------------------------------------*
  *  NAME
  *      GattIsAddressResolvableRandom

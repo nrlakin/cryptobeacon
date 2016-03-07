@@ -165,6 +165,11 @@ extern void GattStopAdverts(void);
  */
 extern uint16 GetSupported16BitUUIDServiceList(uint8 *p_service_uuid_ad);
 
+/* Prepare the list of supported 128-bit service UUIDs to be added to
+ * Advertisement data
+ */
+extern uint16 GetSupported128BitUUIDServiceList(uint8 *p_service_uuid_ad);
+
 /* Check if the address is resolvable random or not */
 extern bool GattIsAddressResolvableRandom(TYPED_BD_ADDR_T *p_addr);
 

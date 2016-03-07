@@ -36,4 +36,5 @@ depend_Release_CSR101x_A05/gatt_access.o: gatt_access.c \
   C:/CSR_uEnergy_SDK-2.5.0.20/tools/include/CSR101x_A05/sys_events.h \
   C:/CSR_uEnergy_SDK-2.5.0.20/tools/include/CSR101x_A05/sleep.h \
   appearance.h gap_service.h gap_conn_params.h battery_service.h \
-  battery_uuids.h dev_info_uuids.h dev_info_service.h
+  battery_uuids.h dev_info_uuids.h dev_info_service.h auth_uuids.h \
+  auth_service.h

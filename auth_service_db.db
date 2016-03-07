@@ -1,0 +1,45 @@
+/******************************************************************************
+ *  Copyright (c) 2013 - 2016 Qualcomm Technologies International, Ltd.
+ *  Part of CSR uEnergy SDK 2.6.0
+ *  Application version 2.6.0.0
+ *
+ *  FILE
+ *      battery_service_db.db
+ *
+ *  DESCRIPTION
+ *      This file defines the Battery Service in JSON format. This file is 
+ *      included in the main application data base file which is used to 
+ *      produce ATT flat data base.
+ *
+ *****************************************************************************/
+#ifndef __AUTH_SERVICE_DB___
+#define __AUTH_SERVICE_DB__
+
+#include "auth_uuids.h"
+
+/* For service details, refer http://developer.bluetooth.org/gatt/services/
+ * Pages/ServiceViewer.aspx?u=org.bluetooth.service.battery_service.xml
+ */
+
+/* Primary service declaration of Battery service */
+primary_service {
+    uuid : UUID_AUTH_SERVICE,
+    name : "AUTH_SERVICE", /* Name will be used in handle name macro */
+    
+    characteristic {
+        uuid : UUID_INPUT_TOKEN,
+        name : "INPUT_TOKEN",
+        flags : [FLAG_IRQ],
+        properties : [write],
+        value : 0x00
+    },
+    
+    characteristic {
+        uuid : UUID_SIGNED_TOKEN,
+        name : "SIGNED_TOKEN",
+        flags : [FLAG_IRQ],
+        properties : [read, notify],
+        value : 0x00
+    }
+}
+#endif /* __AUTH_SERVICE_DB__ */
