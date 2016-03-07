@@ -10,6 +10,7 @@
   <file path="hw_access.c" />
   <file path="nvm_access.c" />
   <file path="cryptobeacon.c" />
+  <file path="auth_service.c" />
  </folder>
  <folder name="Header Files" >
   <extension name="h" />
@@ -29,6 +30,8 @@
   <file path="nvm_access.h" />
   <file path="user_config.h" />
   <file path="cryptobeacon.h" />
+  <file path="auth_service.h" />
+  <file path="auth_uuids.h" />
  </folder>
  <folder name="Assembler Files" >
   <extension name="asm" />
@@ -40,6 +43,7 @@
   <file path="dev_info_service_db.db" />
   <file path="gap_service_db.db" />
   <file path="gatt_service_db.db" />
+  <file path="auth_service_db.db" />
  </folder>
  <file path="cryptobeacon_csr101x_A05.keyr" />
  <properties currentconfiguration="Release" >
