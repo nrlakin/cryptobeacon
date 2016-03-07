@@ -469,10 +469,10 @@
  254 0009 00 02       		.1byte	0x2d
  255 000a 75          		.4byte	0x0
  256 000b 2D          		.4byte	0x0
- 257 000b 00 00 00 00 		.file 2 "C:/CSR_uEnergy_SDK-2.5.0.20/tools/include/CSR101x_A05/types.h"
- 258 000d 00 00 00 00 		.file 3 "C:/CSR_uEnergy_SDK-2.5.0.20/tools/include/CSR101x_A05/bluetooth.h"
- 259                 		.file 4 "C:/CSR_uEnergy_SDK-2.5.0.20/tools/include/CSR101x_A05/ls_types.h"
- 260                 		.file 5 "C:/CSR_uEnergy_SDK-2.5.0.20/tools/include/CSR101x_A05/gap_types.h"
+ 257 000b 00 00 00 00 		.file 2 "C:/CSR_uEnergy_SDK-2.6.0.10/tools/include/CSR101x_A05/types.h"
+ 258 000d 00 00 00 00 		.file 3 "C:/CSR_uEnergy_SDK-2.6.0.10/tools/include/CSR101x_A05/bluetooth.h"
+ 259                 		.file 4 "C:/CSR_uEnergy_SDK-2.6.0.10/tools/include/CSR101x_A05/ls_types.h"
+ 260                 		.file 5 "C:/CSR_uEnergy_SDK-2.6.0.10/tools/include/CSR101x_A05/gap_types.h"
  261                 		.section	.debug_info
  262                 		.4byte	0x388
  263                 		.2byte	0x2
@@ -1377,342 +1377,342 @@
  1062      41 50 50 45 
  1062      41 52 41 4E 
  1062      43 45 00 
- 1063                 	.LASF85:
- 1064 0120 61 64 5F 73 		.ascii "GNU C 4.3.4 CSR version 28 for xap [2131110]\000"
+ 1063                 	.LASF70:
+ 1064 0120 61 64 5F 73 		.ascii "gap_mode_connect_directed\000"
  1064      72 63 5F 61 
  1064      64 76 65 72 
  1064      74 69 73 65 
  1064      00 
- 1065                 	.LASF70:
- 1066 0128 47 4E 55 20 		.ascii "gap_mode_connect_directed\000"
- 1066      43 20 34 2E 
- 1066      33 2E 34 20 
- 1066      43 53 52 20 
- 1066      76 65 72 73 
- 1067                 	.LASF28:
- 1068 013f 67 61 70 5F 		.ascii "AD_TYPE_SERVICE_UUID_32BIT\000"
- 1068      6D 6F 64 65 
- 1068      5F 63 6F 6E 
- 1068      6E 65 63 74 
- 1068      5F 64 69 72 
- 1069                 	.LASF9:
- 1070 014c 41 44 5F 54 		.ascii "long int\000"
- 1070      59 50 45 5F 
- 1070      53 45 52 56 
- 1070      49 43 45 5F 
- 1070      55 55 49 44 
- 1071                 	.LASF87:
- 1072 0159 6C 6F 6E 67 		.ascii "C:\\Users\\Neil\\Documents\\firmware\\cryptobeacon\000"
- 1072      20 69 6E 74 
- 1072      00 
- 1073                 	.LASF61:
- 1074 015e 43 3A 5C 55 		.ascii "gap_role_observer\000"
- 1074      73 65 72 73 
- 1074      5C 4E 65 69 
- 1074      6C 5C 44 6F 
- 1074      63 75 6D 65 
- 1075                 	.LASF25:
- 1076 0175 67 61 70 5F 		.ascii "AD_TYPE_FLAGS\000"
- 1076      72 6F 6C 65 
- 1076      5F 6F 62 73 
- 1076      65 72 76 65 
- 1076      72 00 
- 1077                 	.LASF64:
- 1078 017e 41 44 5F 54 		.ascii "gap_mode_discover_null\000"
- 1078      59 50 45 5F 
- 1078      46 4C 41 47 
- 1078      53 00 
- 1079                 	.LASF13:
- 1080 0185 67 61 70 5F 		.ascii "ls_addr_type_random\000"
- 1080      6D 6F 64 65 
- 1080      5F 64 69 73 
- 1080      63 6F 76 65 
- 1080      72 5F 6E 75 
- 1081                 	.LASF16:
- 1082 0190 6C 73 5F 61 		.ascii "whitelist_disabled\000"
- 1082      64 64 72 5F 
- 1082      74 79 70 65 
- 1082      5F 72 61 6E 
- 1082      64 6F 6D 00 
- 1083                 	.LASF18:
- 1084 019a 77 68 69 74 		.ascii "whitelist_mode_null\000"
+ 1065                 	.LASF28:
+ 1066 0128 67 61 70 5F 		.ascii "AD_TYPE_SERVICE_UUID_32BIT\000"
+ 1066      6D 6F 64 65 
+ 1066      5F 63 6F 6E 
+ 1066      6E 65 63 74 
+ 1066      5F 64 69 72 
+ 1067                 	.LASF9:
+ 1068 0135 41 44 5F 54 		.ascii "long int\000"
+ 1068      59 50 45 5F 
+ 1068      53 45 52 56 
+ 1068      49 43 45 5F 
+ 1068      55 55 49 44 
+ 1069                 	.LASF87:
+ 1070 0143 6C 6F 6E 67 		.ascii "C:\\Users\\Neil\\Documents\\firmware\\cryptobeacon\000"
+ 1070      20 69 6E 74 
+ 1070      00 
+ 1071                 	.LASF61:
+ 1072 0147 43 3A 5C 55 		.ascii "gap_role_observer\000"
+ 1072      73 65 72 73 
+ 1072      5C 4E 65 69 
+ 1072      6C 5C 44 6F 
+ 1072      63 75 6D 65 
+ 1073                 	.LASF25:
+ 1074 015e 67 61 70 5F 		.ascii "AD_TYPE_FLAGS\000"
+ 1074      72 6F 6C 65 
+ 1074      5F 6F 62 73 
+ 1074      65 72 76 65 
+ 1074      72 00 
+ 1075                 	.LASF64:
+ 1076 0167 41 44 5F 54 		.ascii "gap_mode_discover_null\000"
+ 1076      59 50 45 5F 
+ 1076      46 4C 41 47 
+ 1076      53 00 
+ 1077                 	.LASF13:
+ 1078 016e 67 61 70 5F 		.ascii "ls_addr_type_random\000"
+ 1078      6D 6F 64 65 
+ 1078      5F 64 69 73 
+ 1078      63 6F 76 65 
+ 1078      72 5F 6E 75 
+ 1079                 	.LASF16:
+ 1080 017a 6C 73 5F 61 		.ascii "whitelist_disabled\000"
+ 1080      64 64 72 5F 
+ 1080      74 79 70 65 
+ 1080      5F 72 61 6E 
+ 1080      64 6F 6D 00 
+ 1081                 	.LASF18:
+ 1082 0184 77 68 69 74 		.ascii "whitelist_mode_null\000"
+ 1082      65 6C 69 73 
+ 1082      74 5F 64 69 
+ 1082      73 61 62 6C 
+ 1082      65 64 00 
+ 1083                 	.LASF60:
+ 1084 018d 77 68 69 74 		.ascii "gap_role_broadcaster\000"
  1084      65 6C 69 73 
- 1084      74 5F 64 69 
- 1084      73 61 62 6C 
- 1084      65 64 00 
- 1085                 	.LASF60:
- 1086 01a4 77 68 69 74 		.ascii "gap_role_broadcaster\000"
- 1086      65 6C 69 73 
- 1086      74 5F 6D 6F 
- 1086      64 65 5F 6E 
- 1086      75 6C 6C 00 
- 1087                 	.LASF71:
- 1088 01ae 67 61 70 5F 		.ascii "gap_mode_connect_undirected\000"
- 1088      72 6F 6C 65 
- 1088      5F 62 72 6F 
- 1088      61 64 63 61 
- 1088      73 74 65 72 
- 1089                 	.LASF65:
- 1090 01b8 67 61 70 5F 		.ascii "gap_mode_discover_no\000"
+ 1084      74 5F 6D 6F 
+ 1084      64 65 5F 6E 
+ 1084      75 6C 6C 00 
+ 1085                 	.LASF71:
+ 1086 0197 67 61 70 5F 		.ascii "gap_mode_connect_undirected\000"
+ 1086      72 6F 6C 65 
+ 1086      5F 62 72 6F 
+ 1086      61 64 63 61 
+ 1086      73 74 65 72 
+ 1087                 	.LASF65:
+ 1088 01a2 67 61 70 5F 		.ascii "gap_mode_discover_no\000"
+ 1088      6D 6F 64 65 
+ 1088      5F 63 6F 6E 
+ 1088      6E 65 63 74 
+ 1088      5F 75 6E 64 
+ 1089                 	.LASF14:
+ 1090 01b0 67 61 70 5F 		.ascii "ls_addr_type_null\000"
  1090      6D 6F 64 65 
- 1090      5F 63 6F 6E 
- 1090      6E 65 63 74 
- 1090      5F 75 6E 64 
- 1091                 	.LASF14:
- 1092 01c6 67 61 70 5F 		.ascii "ls_addr_type_null\000"
- 1092      6D 6F 64 65 
- 1092      5F 64 69 73 
- 1092      63 6F 76 65 
- 1092      72 5F 6E 6F 
- 1093                 	.LASF42:
- 1094 01d1 6C 73 5F 61 		.ascii "AD_TYPE_SERVICE_SOLICIT_UUID_16BIT\000"
- 1094      64 64 72 5F 
- 1094      74 79 70 65 
- 1094      5F 6E 75 6C 
- 1094      6C 00 
- 1095                 	.LASF59:
- 1096 01da 41 44 5F 54 		.ascii "gap_role_null\000"
- 1096      59 50 45 5F 
- 1096      53 45 52 56 
- 1096      49 43 45 5F 
- 1096      53 4F 4C 49 
- 1097                 	.LASF6:
- 1098 01eb 67 61 70 5F 		.ascii "uint24\000"
- 1098      72 6F 6C 65 
- 1098      5F 6E 75 6C 
- 1098      6C 00 
- 1099                 	.LASF2:
- 1100 01f2 75 69 6E 74 		.ascii "unsigned char\000"
- 1100      32 34 00 
- 1101                 	.LASF72:
- 1102 01f6 75 6E 73 69 		.ascii "gap_mode_bond_null\000"
- 1102      67 6E 65 64 
- 1102      20 63 68 61 
- 1102      72 00 
- 1103                 	.LASF49:
- 1104 01fd 67 61 70 5F 		.ascii "AD_TYPE_LE_BT_ADDRESS\000"
- 1104      6D 6F 64 65 
- 1104      5F 62 6F 6E 
- 1104      64 5F 6E 75 
- 1104      6C 6C 00 
- 1105                 	.LASF35:
- 1106 0206 41 44 5F 54 		.ascii "AD_TYPE_OOB_DEVICE_CLASS\000"
+ 1090      5F 64 69 73 
+ 1090      63 6F 76 65 
+ 1090      72 5F 6E 6F 
+ 1091                 	.LASF42:
+ 1092 01ba 6C 73 5F 61 		.ascii "AD_TYPE_SERVICE_SOLICIT_UUID_16BIT\000"
+ 1092      64 64 72 5F 
+ 1092      74 79 70 65 
+ 1092      5F 6E 75 6C 
+ 1092      6C 00 
+ 1093                 	.LASF59:
+ 1094 01c3 41 44 5F 54 		.ascii "gap_role_null\000"
+ 1094      59 50 45 5F 
+ 1094      53 45 52 56 
+ 1094      49 43 45 5F 
+ 1094      53 4F 4C 49 
+ 1095                 	.LASF6:
+ 1096 01d5 67 61 70 5F 		.ascii "uint24\000"
+ 1096      72 6F 6C 65 
+ 1096      5F 6E 75 6C 
+ 1096      6C 00 
+ 1097                 	.LASF2:
+ 1098 01dc 75 69 6E 74 		.ascii "unsigned char\000"
+ 1098      32 34 00 
+ 1099                 	.LASF72:
+ 1100 01df 75 6E 73 69 		.ascii "gap_mode_bond_null\000"
+ 1100      67 6E 65 64 
+ 1100      20 63 68 61 
+ 1100      72 00 
+ 1101                 	.LASF49:
+ 1102 01e6 67 61 70 5F 		.ascii "AD_TYPE_LE_BT_ADDRESS\000"
+ 1102      6D 6F 64 65 
+ 1102      5F 62 6F 6E 
+ 1102      64 5F 6E 75 
+ 1102      6C 6C 00 
+ 1103                 	.LASF35:
+ 1104 01f0 41 44 5F 54 		.ascii "AD_TYPE_OOB_DEVICE_CLASS\000"
+ 1104      59 50 45 5F 
+ 1104      4C 45 5F 42 
+ 1104      54 5F 41 44 
+ 1104      44 52 45 53 
+ 1105                 	.LASF85:
+ 1106 01fb 41 44 5F 54 		.ascii "GNU C 4.3.4 CSR version 29 for xap []\000"
  1106      59 50 45 5F 
- 1106      4C 45 5F 42 
- 1106      54 5F 41 44 
- 1106      44 52 45 53 
- 1107                 	.LASF29:
- 1108 0211 41 44 5F 54 		.ascii "AD_TYPE_SERVICE_UUID_32BIT_LIST\000"
- 1108      59 50 45 5F 
- 1108      4F 4F 42 5F 
- 1108      44 45 56 49 
- 1108      43 45 5F 43 
- 1109                 	.LASF40:
- 1110 021e 41 44 5F 54 		.ascii "AD_TYPE_SLAVE_CONN_INTERVAL\000"
+ 1106      4F 4F 42 5F 
+ 1106      44 45 56 49 
+ 1106      43 45 5F 43 
+ 1107                 	.LASF40:
+ 1108 0207 47 4E 55 20 		.ascii "AD_TYPE_SLAVE_CONN_INTERVAL\000"
+ 1108      43 20 34 2E 
+ 1108      33 2E 34 20 
+ 1108      43 53 52 20 
+ 1108      76 65 72 73 
+ 1109                 	.LASF7:
+ 1110 021a 41 44 5F 54 		.ascii "signed char\000"
  1110      59 50 45 5F 
- 1110      53 45 52 56 
- 1110      49 43 45 5F 
- 1110      55 55 49 44 
- 1111                 	.LASF7:
- 1112 022e 41 44 5F 54 		.ascii "signed char\000"
- 1112      59 50 45 5F 
- 1112      53 4C 41 56 
- 1112      45 5F 43 4F 
- 1112      4E 4E 5F 49 
- 1113                 	.LASF15:
- 1114 023c 73 69 67 6E 		.ascii "ls_addr_type\000"
- 1114      65 64 20 63 
- 1114      68 61 72 00 
- 1115                 	.LASF10:
- 1116 0242 6C 73 5F 61 		.ascii "unsigned int\000"
- 1116      64 64 72 5F 
- 1116      74 79 70 65 
+ 1110      53 4C 41 56 
+ 1110      45 5F 43 4F 
+ 1110      4E 4E 5F 49 
+ 1111                 	.LASF15:
+ 1112 0228 73 69 67 6E 		.ascii "ls_addr_type\000"
+ 1112      65 64 20 63 
+ 1112      68 61 72 00 
+ 1113                 	.LASF10:
+ 1114 022e 6C 73 5F 61 		.ascii "unsigned int\000"
+ 1114      64 64 72 5F 
+ 1114      74 79 70 65 
+ 1114      00 
+ 1115                 	.LASF67:
+ 1116 0235 75 6E 73 69 		.ascii "gap_mode_discover_general\000"
+ 1116      67 6E 65 64 
+ 1116      20 69 6E 74 
  1116      00 
- 1117                 	.LASF67:
- 1118 0248 75 6E 73 69 		.ascii "gap_mode_discover_general\000"
- 1118      67 6E 65 64 
- 1118      20 69 6E 74 
- 1118      00 
+ 1117                 	.LASF29:
+ 1118 023b 67 61 70 5F 		.ascii "AD_TYPE_SERVICE_UUID_32BIT_LIST\000"
+ 1118      6D 6F 64 65 
+ 1118      5F 64 69 73 
+ 1118      63 6F 76 65 
+ 1118      72 5F 67 65 
  1119                 	.LASF80:
- 1120 024f 67 61 70 5F 		.ascii "advData\000"
- 1120      6D 6F 64 65 
- 1120      5F 64 69 73 
- 1120      63 6F 76 65 
- 1120      72 5F 67 65 
+ 1120 0248 41 44 5F 54 		.ascii "advData\000"
+ 1120      59 50 45 5F 
+ 1120      53 45 52 56 
+ 1120      49 43 45 5F 
+ 1120      55 55 49 44 
  1121                 	.LASF50:
- 1122 025c 61 64 76 44 		.ascii "AD_TYPE_LE_ROLE\000"
+ 1122 0258 61 64 76 44 		.ascii "AD_TYPE_LE_ROLE\000"
  1122      61 74 61 00 
  1123                 	.LASF3:
- 1124 0260 41 44 5F 54 		.ascii "short unsigned int\000"
+ 1124 025c 41 44 5F 54 		.ascii "short unsigned int\000"
  1124      59 50 45 5F 
  1124      4C 45 5F 52 
  1124      4F 4C 45 00 
  1125                 	.LASF79:
- 1126 0268 73 68 6F 72 		.ascii "offset\000"
+ 1126 0264 73 68 6F 72 		.ascii "offset\000"
  1126      74 20 75 6E 
  1126      73 69 67 6E 
  1126      65 64 20 69 
  1126      6E 74 00 
  1127                 	.LASF84:
- 1128 0271 6F 66 66 73 		.ascii "addressType\000"
+ 1128 026e 6F 66 66 73 		.ascii "addressType\000"
  1128      65 74 00 
  1129                 	.LASF11:
- 1130 0275 61 64 64 72 		.ascii "BD_ADDR_T\000"
+ 1130 0271 61 64 64 72 		.ascii "BD_ADDR_T\000"
  1130      65 73 73 54 
  1130      79 70 65 00 
  1131                 	.LASF19:
- 1132 027b 42 44 5F 41 		.ascii "whitelist_mode_scan_false\000"
+ 1132 0277 42 44 5F 41 		.ascii "whitelist_mode_scan_false\000"
  1132      44 44 52 5F 
  1132      54 00 
  1133                 	.LASF78:
- 1134 0280 77 68 69 74 		.ascii "addr\000"
+ 1134 027c 77 68 69 74 		.ascii "addr\000"
  1134      65 6C 69 73 
  1134      74 5F 6D 6F 
  1134      64 65 5F 73 
  1134      63 61 6E 5F 
  1135                 	.LASF26:
- 1136 028d 61 64 64 72 		.ascii "AD_TYPE_SERVICE_UUID_16BIT\000"
+ 1136 0289 61 64 64 72 		.ascii "AD_TYPE_SERVICE_UUID_16BIT\000"
  1136      00 
  1137                 	.LASF38:
- 1138 028f 41 44 5F 54 		.ascii "AD_TYPE_SM_TK\000"
+ 1138 028c 41 44 5F 54 		.ascii "AD_TYPE_SM_TK\000"
  1138      59 50 45 5F 
  1138      53 45 52 56 
  1138      49 43 45 5F 
  1138      55 55 49 44 
  1139                 	.LASF68:
- 1140 029d 41 44 5F 54 		.ascii "gap_mode_connect_null\000"
+ 1140 0299 41 44 5F 54 		.ascii "gap_mode_connect_null\000"
  1140      59 50 45 5F 
  1140      53 4D 5F 54 
  1140      4B 00 
  1141                 	.LASF27:
- 1142 02a4 67 61 70 5F 		.ascii "AD_TYPE_SERVICE_UUID_16BIT_LIST\000"
+ 1142 02a0 67 61 70 5F 		.ascii "AD_TYPE_SERVICE_UUID_16BIT_LIST\000"
  1142      6D 6F 64 65 
  1142      5F 63 6F 6E 
  1142      6E 65 63 74 
  1142      5F 6E 75 6C 
  1143                 	.LASF4:
- 1144 02af 41 44 5F 54 		.ascii "uint32\000"
+ 1144 02ab 41 44 5F 54 		.ascii "uint32\000"
  1144      59 50 45 5F 
  1144      53 45 52 56 
  1144      49 43 45 5F 
  1144      55 55 49 44 
  1145                 	.LASF5:
- 1146 02bf 75 69 6E 74 		.ascii "long unsigned int\000"
+ 1146 02bb 75 69 6E 74 		.ascii "long unsigned int\000"
  1146      33 32 00 
  1147                 	.LASF41:
- 1148 02c2 6C 6F 6E 67 		.ascii "AD_TYPE_SIGNED_DATA\000"
+ 1148 02bf 6C 6F 6E 67 		.ascii "AD_TYPE_SIGNED_DATA\000"
  1148      20 75 6E 73 
  1148      69 67 6E 65 
  1148      64 20 69 6E 
  1148      74 00 
  1149                 	.LASF46:
- 1150 02cb 41 44 5F 54 		.ascii "AD_TYPE_RANDOM_TARGET_ADDRESS\000"
+ 1150 02c8 41 44 5F 54 		.ascii "AD_TYPE_RANDOM_TARGET_ADDRESS\000"
  1150      59 50 45 5F 
  1150      53 49 47 4E 
  1150      45 44 5F 44 
  1150      41 54 41 00 
  1151                 	.LASF54:
- 1152 02d5 41 44 5F 54 		.ascii "AD_TYPE_SERVICE_DATA_UUID_32BIT\000"
+ 1152 02d2 41 44 5F 54 		.ascii "AD_TYPE_SERVICE_DATA_UUID_32BIT\000"
  1152      59 50 45 5F 
  1152      52 41 4E 44 
  1152      4F 4D 5F 54 
  1152      41 52 47 45 
  1153                 	.LASF82:
- 1154 02e4 41 44 5F 54 		.ascii "advInterval\000"
+ 1154 02e1 41 44 5F 54 		.ascii "advInterval\000"
  1154      59 50 45 5F 
  1154      53 45 52 56 
  1154      49 43 45 5F 
  1154      44 41 54 41 
  1155                 	.LASF24:
- 1156 02f4 61 64 76 49 		.ascii "whitelist_mode_conn_true\000"
+ 1156 02f1 61 64 76 49 		.ascii "whitelist_mode_conn_true\000"
  1156      6E 74 65 72 
  1156      76 61 6C 00 
  1157                 	.LASF52:
- 1158 02fa 77 68 69 74 		.ascii "AD_TYPE_OOB_SSP_RANDOM_R_256\000"
+ 1158 02f7 77 68 69 74 		.ascii "AD_TYPE_OOB_SSP_RANDOM_R_256\000"
  1158      65 6C 69 73 
  1158      74 5F 6D 6F 
  1158      64 65 5F 63 
  1158      6F 6E 6E 5F 
  1159                 	.LASF48:
- 1160 0307 41 44 5F 54 		.ascii "AD_TYPE_ADVERTISING_INTERVAL\000"
+ 1160 0303 41 44 5F 54 		.ascii "AD_TYPE_ADVERTISING_INTERVAL\000"
  1160      59 50 45 5F 
  1160      4F 4F 42 5F 
  1160      53 53 50 5F 
  1160      52 41 4E 44 
  1161                 	.LASF81:
- 1162 0315 41 44 5F 54 		.ascii "filler\000"
+ 1162 0312 41 44 5F 54 		.ascii "filler\000"
  1162      59 50 45 5F 
  1162      41 44 56 45 
  1162      52 54 49 53 
  1162      49 4E 47 5F 
  1163                 	.LASF51:
- 1164 0324 66 69 6C 6C 		.ascii "AD_TYPE_OOB_SSP_HASH_C_256\000"
+ 1164 0320 66 69 6C 6C 		.ascii "AD_TYPE_OOB_SSP_HASH_C_256\000"
  1164      65 72 00 
  1165                 	.LASF22:
- 1166 0327 41 44 5F 54 		.ascii "whitelist_mode_adv_true\000"
+ 1166 0324 41 44 5F 54 		.ascii "whitelist_mode_adv_true\000"
  1166      59 50 45 5F 
  1166      4F 4F 42 5F 
  1166      53 53 50 5F 
  1166      48 41 53 48 
  1167                 	.LASF55:
- 1168 0335 77 68 69 74 		.ascii "AD_TYPE_SERVICE_DATA_UUID_128BIT\000"
+ 1168 0331 77 68 69 74 		.ascii "AD_TYPE_SERVICE_DATA_UUID_128BIT\000"
  1168      65 6C 69 73 
  1168      74 5F 6D 6F 
  1168      64 65 5F 61 
  1168      64 76 5F 74 
  1169                 	.LASF77:
- 1170 0341 41 44 5F 54 		.ascii "gap_mode_security_authenticate\000"
+ 1170 033d 41 44 5F 54 		.ascii "gap_mode_security_authenticate\000"
  1170      59 50 45 5F 
  1170      53 45 52 56 
  1170      49 43 45 5F 
  1170      44 41 54 41 
  1171                 	.LASF43:
- 1172 0351 67 61 70 5F 		.ascii "AD_TYPE_SERVICE_SOLICIT_UUID_128BIT\000"
+ 1172 034e 67 61 70 5F 		.ascii "AD_TYPE_SERVICE_SOLICIT_UUID_128BIT\000"
  1172      6D 6F 64 65 
  1172      5F 73 65 63 
  1172      75 72 69 74 
  1172      79 5F 61 75 
  1173                 	.LASF86:
- 1174 0361 41 44 5F 54 		.ascii "beacon.c\000"
+ 1174 035d 41 44 5F 54 		.ascii "beacon.c\000"
  1174      59 50 45 5F 
  1174      53 45 52 56 
  1174      49 43 45 5F 
  1174      53 4F 4C 49 
  1175                 	.LASF83:
- 1176 0373 62 65 61 63 		.ascii "advPayloadSize\000"
+ 1176 036f 62 65 61 63 		.ascii "advPayloadSize\000"
  1176      6F 6E 2E 63 
  1176      00 
  1177                 	.LASF17:
- 1178 0377 61 64 76 50 		.ascii "whitelist_enabled\000"
+ 1178 0374 61 64 76 50 		.ascii "whitelist_enabled\000"
  1178      61 79 6C 6F 
  1178      61 64 53 69 
  1178      7A 65 00 
  1179                 	.LASF75:
- 1180 037f 77 68 69 74 		.ascii "gap_mode_security_none\000"
+ 1180 037b 77 68 69 74 		.ascii "gap_mode_security_none\000"
  1180      65 6C 69 73 
  1180      74 5F 65 6E 
  1180      61 62 6C 65 
  1180      64 00 
  1181                 	.LASF45:
- 1182 0388 67 61 70 5F 		.ascii "AD_TYPE_PUBLIC_TARGET_ADDRESS\000"
+ 1182 0384 67 61 70 5F 		.ascii "AD_TYPE_PUBLIC_TARGET_ADDRESS\000"
  1182      6D 6F 64 65 
  1182      5F 73 65 63 
  1182      75 72 69 74 
  1182      79 5F 6E 6F 
  1183                 	.LASF30:
- 1184 0393 41 44 5F 54 		.ascii "AD_TYPE_SERVICE_UUID_128BIT\000"
+ 1184 0390 41 44 5F 54 		.ascii "AD_TYPE_SERVICE_UUID_128BIT\000"
  1184      59 50 45 5F 
  1184      50 55 42 4C 
  1184      49 43 5F 54 
  1184      41 52 47 45 
  1185                 	.LASF37:
- 1186 03a2 41 44 5F 54 		.ascii "AD_TYPE_OOB_SSP_RANDOM_R_192\000"
+ 1186 039f 41 44 5F 54 		.ascii "AD_TYPE_OOB_SSP_RANDOM_R_192\000"
  1186      59 50 45 5F 
  1186      53 45 52 56 
  1186      49 43 45 5F 
  1186      55 55 49 44 
- 1187                 		.ident	"GCC: (GNU) 4.3.4 CSR version 28 for xap [2131110]"
- 1188 03b0 41 44 5F 54 	...
+ 1187                 		.ident	"GCC: (GNU) 4.3.4 CSR version 29 for xap []"
+ 1188 03ad 41 44 5F 54 	...
  1188      59 50 45 5F 
  1188      4F 4F 42 5F 
  1188      53 53 50 5F 

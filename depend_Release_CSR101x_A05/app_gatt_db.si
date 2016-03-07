@@ -358,7 +358,7 @@
  269 0019 00 01       		.1byte	0x53
  270 001a 53          		.4byte	0x0
  271 001a 00 00 00 00 		.4byte	0x0
- 272 001c 00 00 00 00 		.file 2 "C:/CSR_uEnergy_SDK-2.5.0.20/tools/include/CSR101x_A05/types.h"
+ 272 001c 00 00 00 00 		.file 2 "C:/CSR_uEnergy_SDK-2.6.0.10/tools/include/CSR101x_A05/types.h"
  273                 		.section	.debug_info
  274                 		.4byte	0xba
  275 0000 00 00 00 BA 		.2byte	0x2
@@ -626,66 +626,66 @@
  531 000a 00 00 00 00 		.section	.debug_str,"MS",@progbits,1
  532                 	.LASF12:
  533                 		.ascii "gattDatabase\000"
- 534 0000 67 61 74 74 	.LASF6:
+ 534 0000 67 61 74 74 	.LASF7:
  534      44 61 74 61 
  534      62 61 73 65 
  534      00 
- 535                 		.ascii "unsigned int\000"
- 536 0006 75 6E 73 69 	.LASF2:
- 536      67 6E 65 64 
- 536      20 69 6E 74 
- 536      00 
+ 535                 		.ascii "GNU C 4.3.4 CSR version 29 for xap []\000"
+ 536 0006 47 4E 55 20 	.LASF2:
+ 536      43 20 34 2E 
+ 536      33 2E 34 20 
+ 536      43 53 52 20 
+ 536      76 65 72 73 
  537                 		.ascii "long unsigned int\000"
- 538 000d 6C 6F 6E 67 	.LASF10:
+ 538 0019 6C 6F 6E 67 	.LASF6:
  538      20 75 6E 73 
  538      69 67 6E 65 
  538      64 20 69 6E 
  538      74 00 
- 539                 		.ascii "uint16\000"
- 540 0016 75 69 6E 74 	.LASF3:
- 540      31 36 00 
- 541                 		.ascii "signed char\000"
- 542 0019 73 69 67 6E 	.LASF7:
- 542      65 64 20 63 
- 542      68 61 72 00 
- 543                 		.ascii "GNU C 4.3.4 CSR version 28 for xap [2131110]\000"
- 544 001f 47 4E 55 20 	.LASF1:
- 544      43 20 34 2E 
- 544      33 2E 34 20 
- 544      43 53 52 20 
- 544      76 65 72 73 
+ 539                 		.ascii "unsigned int\000"
+ 540 0022 75 6E 73 69 	.LASF10:
+ 540      67 6E 65 64 
+ 540      20 69 6E 74 
+ 540      00 
+ 541                 		.ascii "uint16\000"
+ 542 0029 75 69 6E 74 	.LASF3:
+ 542      31 36 00 
+ 543                 		.ascii "signed char\000"
+ 544 002c 73 69 67 6E 	.LASF1:
+ 544      65 64 20 63 
+ 544      68 61 72 00 
  545                 		.ascii "short unsigned int\000"
- 546 0036 73 68 6F 72 	.LASF4:
+ 546 0032 73 68 6F 72 	.LASF4:
  546      74 20 75 6E 
  546      73 69 67 6E 
  546      65 64 20 69 
  546      6E 74 00 
  547                 		.ascii "short int\000"
- 548 003f 73 68 6F 72 	.LASF9:
+ 548 003c 73 68 6F 72 	.LASF9:
  548      74 20 69 6E 
  548      74 00 
  549                 		.ascii "C:\\Users\\Neil\\Documents\\firmware\\cryptobeacon\000"
- 550 0044 43 3A 5C 55 	.LASF0:
+ 550 0041 43 3A 5C 55 	.LASF0:
  550      73 65 72 73 
  550      5C 4E 65 69 
  550      6C 5C 44 6F 
  550      63 75 6D 65 
  551                 		.ascii "unsigned char\000"
- 552 005b 75 6E 73 69 	.LASF5:
+ 552 0058 75 6E 73 69 	.LASF5:
  552      67 6E 65 64 
  552      20 63 68 61 
  552      72 00 
  553                 		.ascii "long int\000"
- 554 0062 6C 6F 6E 67 	.LASF11:
+ 554 005f 6C 6F 6E 67 	.LASF11:
  554      20 69 6E 74 
  554      00 
  555                 		.ascii "GattGetDatabase\000"
- 556 0067 47 61 74 74 	.LASF8:
+ 556 0063 47 61 74 74 	.LASF8:
  556      47 65 74 44 
  556      61 74 61 62 
  556      61 73 65 00 
  557                 		.ascii "depend_Release_CSR101x_A05/app_gatt_db.c\000"
- 558 006f 64 65 70 65 		.ident	"GCC: (GNU) 4.3.4 CSR version 28 for xap [2131110]"
+ 558 006b 64 65 70 65 		.ident	"GCC: (GNU) 4.3.4 CSR version 29 for xap []"
  558      6E 64 5F 52 
  558      65 6C 65 61 
  558      73 65 5F 43 

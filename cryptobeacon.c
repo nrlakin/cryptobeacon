@@ -1877,17 +1877,20 @@ extern void SetState(app_state new_state)
                 GattTriggerFastAdverts(&g_app_data.bonded_bd_addr);
 
                 /* Indicate advertising mode by sounding two short beeps */
+                IndicateAdvertisingServer();
                 //SoundBuzzer(buzzer_beep_twice);
             }
             break;
 
             case app_state_slow_advertising:
                 /* Start slow advertisements */
+                IndicateAdvertisingServer();
                 GattStartAdverts(&g_app_data.bonded_bd_addr, FALSE);
             break;
 
             case app_state_idle:
                 /* Sound long beep to indicate non-connectable mode */
+                IndicateUnhandledState();
                 //SoundBuzzer(buzzer_beep_long);
             break;
 
@@ -1896,6 +1899,7 @@ extern void SetState(app_state new_state)
                 /* Common things to do whenever application enters
                  * app_state_connected state.
                  */
+                IndicateConnection();
 #ifdef PAIRING_SUPPORT                
                 /* Trigger SM Slave Security request only if the remote 
                  * host is not using resolvable random address
@@ -1920,6 +1924,7 @@ extern void SetState(app_state new_state)
 
             case app_state_disconnecting:
                 /* Disconnect the link */
+                IndicateUnhandledState();
                 GattDisconnectReq(g_app_data.st_ucid);
             break;
 

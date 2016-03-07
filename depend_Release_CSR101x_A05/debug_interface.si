@@ -103,56 +103,56 @@
   99 0013 00          		.1byte	0x0
  100 0013 00          		.1byte	0x0
  101                 		.section	.debug_str,"MS",@progbits,1
- 102                 	.LASF6:
- 103 0000 75 6E 73 69 		.ascii "unsigned int\000"
- 103      67 6E 65 64 
- 103      20 69 6E 74 
- 103      00 
- 104                 	.LASF2:
- 105 0006 6C 6F 6E 67 		.ascii "long unsigned int\000"
- 105      20 75 6E 73 
- 105      69 67 6E 65 
- 105      64 20 69 6E 
- 105      74 00 
- 106                 	.LASF8:
- 107 000f 64 65 62 75 		.ascii "debug_interface.c\000"
- 107      67 5F 69 6E 
- 107      74 65 72 66 
- 107      61 63 65 2E 
- 107      63 00 
- 108                 	.LASF3:
- 109 0018 73 69 67 6E 		.ascii "signed char\000"
- 109      65 64 20 63 
- 109      68 61 72 00 
- 110                 	.LASF7:
- 111 001e 47 4E 55 20 		.ascii "GNU C 4.3.4 CSR version 28 for xap [2131110]\000"
- 111      43 20 34 2E 
- 111      33 2E 34 20 
- 111      43 53 52 20 
- 111      76 65 72 73 
+ 102                 	.LASF7:
+ 103 0000 47 4E 55 20 		.ascii "GNU C 4.3.4 CSR version 29 for xap []\000"
+ 103      43 20 34 2E 
+ 103      33 2E 34 20 
+ 103      43 53 52 20 
+ 103      76 65 72 73 
+ 104                 	.LASF6:
+ 105 0013 75 6E 73 69 		.ascii "unsigned int\000"
+ 105      67 6E 65 64 
+ 105      20 69 6E 74 
+ 105      00 
+ 106                 	.LASF2:
+ 107 0019 6C 6F 6E 67 		.ascii "long unsigned int\000"
+ 107      20 75 6E 73 
+ 107      69 67 6E 65 
+ 107      64 20 69 6E 
+ 107      74 00 
+ 108                 	.LASF8:
+ 109 0022 64 65 62 75 		.ascii "debug_interface.c\000"
+ 109      67 5F 69 6E 
+ 109      74 65 72 66 
+ 109      61 63 65 2E 
+ 109      63 00 
+ 110                 	.LASF3:
+ 111 002b 73 69 67 6E 		.ascii "signed char\000"
+ 111      65 64 20 63 
+ 111      68 61 72 00 
  112                 	.LASF1:
- 113 0035 73 68 6F 72 		.ascii "short unsigned int\000"
+ 113 0031 73 68 6F 72 		.ascii "short unsigned int\000"
  113      74 20 75 6E 
  113      73 69 67 6E 
  113      65 64 20 69 
  113      6E 74 00 
  114                 	.LASF4:
- 115 003e 73 68 6F 72 		.ascii "short int\000"
+ 115 003b 73 68 6F 72 		.ascii "short int\000"
  115      74 20 69 6E 
  115      74 00 
  116                 	.LASF9:
- 117 0043 43 3A 5C 55 		.ascii "C:\\Users\\Neil\\Documents\\firmware\\cryptobeacon\000"
+ 117 0040 43 3A 5C 55 		.ascii "C:\\Users\\Neil\\Documents\\firmware\\cryptobeacon\000"
  117      73 65 72 73 
  117      5C 4E 65 69 
  117      6C 5C 44 6F 
  117      63 75 6D 65 
  118                 	.LASF0:
- 119 005a 75 6E 73 69 		.ascii "unsigned char\000"
+ 119 0057 75 6E 73 69 		.ascii "unsigned char\000"
  119      67 6E 65 64 
  119      20 63 68 61 
  119      72 00 
  120                 	.LASF5:
- 121 0061 6C 6F 6E 67 		.ascii "long int\000"
+ 121 005e 6C 6F 6E 67 		.ascii "long int\000"
  121      20 69 6E 74 
  121      00 
- 122                 		.ident	"GCC: (GNU) 4.3.4 CSR version 28 for xap [2131110]"
+ 122                 		.ident	"GCC: (GNU) 4.3.4 CSR version 29 for xap []"

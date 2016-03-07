@@ -39,6 +39,10 @@
  *  Public Function Prototypes
  *============================================================================*/
 
+extern void IndicateAdvertisingServer(void);
+extern void IndicateConnection(void);
+extern void IndicateUnhandledState(void);
+
 /* Initialise the application hardware */
 extern void InitHardware(void);
 

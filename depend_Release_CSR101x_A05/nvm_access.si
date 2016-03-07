@@ -393,9 +393,9 @@
  244 006e 00 02       		.1byte	0x3
  245 006f 76          		.4byte	0x0
  246 0070 03          		.4byte	0x0
- 247 0070 00 00 00 00 		.file 2 "C:/CSR_uEnergy_SDK-2.5.0.20/tools/include/CSR101x_A05/types.h"
- 248 0072 00 00 00 00 		.file 3 "C:/CSR_uEnergy_SDK-2.5.0.20/tools/include/CSR101x_A05/status.h"
- 249                 		.file 4 "C:/CSR_uEnergy_SDK-2.5.0.20/tools/include/CSR101x_A05/pio.h"
+ 247 0070 00 00 00 00 		.file 2 "C:/CSR_uEnergy_SDK-2.6.0.10/tools/include/CSR101x_A05/types.h"
+ 248 0072 00 00 00 00 		.file 3 "C:/CSR_uEnergy_SDK-2.6.0.10/tools/include/CSR101x_A05/status.h"
+ 249                 		.file 4 "C:/CSR_uEnergy_SDK-2.6.0.10/tools/include/CSR101x_A05/pio.h"
  250                 		.file 5 "gatt_access.h"
  251                 		.section	.debug_info
  252                 		.4byte	0x3ee
@@ -1322,438 +1322,438 @@
  1015      70 75 6C 6C 
  1015      5F 6D 6F 64 
  1015      65 5F 73 74 
- 1016                 	.LASF112:
- 1017 0210 4E 76 6D 5F 		.ascii "GNU C 4.3.4 CSR version 28 for xap [2131110]\000"
+ 1016                 	.LASF101:
+ 1017 0210 4E 76 6D 5F 		.ascii "app_panic_nvm_write\000"
  1017      52 65 61 64 
  1017      00 
- 1018                 	.LASF101:
- 1019 0214 47 4E 55 20 		.ascii "app_panic_nvm_write\000"
- 1019      43 20 34 2E 
- 1019      33 2E 34 20 
- 1019      43 53 52 20 
- 1019      76 65 72 73 
- 1020                 	.LASF90:
- 1021 022b 61 70 70 5F 		.ascii "pio_i2c_pull_mode_weak_pull_down\000"
- 1021      70 61 6E 69 
- 1021      63 5F 6E 76 
- 1021      6D 5F 77 72 
- 1021      69 74 65 00 
- 1022                 	.LASF49:
- 1023 0235 70 69 6F 5F 		.ascii "gatt_status_invalid_length\000"
- 1023      69 32 63 5F 
- 1023      70 75 6C 6C 
- 1023      5F 6D 6F 64 
- 1023      65 5F 77 65 
- 1024                 	.LASF105:
- 1025 0245 67 61 74 74 		.ascii "app_panic_con_param_update\000"
- 1025      5F 73 74 61 
- 1025      74 75 73 5F 
- 1025      69 6E 76 61 
- 1025      6C 69 64 5F 
- 1026                 	.LASF5:
- 1027 0253 61 70 70 5F 		.ascii "long int\000"
- 1027      70 61 6E 69 
- 1027      63 5F 63 6F 
- 1027      6E 5F 70 61 
- 1027      72 61 6D 5F 
- 1028                 	.LASF73:
- 1029 0260 6C 6F 6E 67 		.ascii "sm_status_reserved\000"
- 1029      20 69 6E 74 
- 1029      00 
- 1030                 	.LASF95:
- 1031 0265 73 6D 5F 73 		.ascii "pio_i2c_pull_mode_strong_sticky\000"
- 1031      74 61 74 75 
- 1031      73 5F 72 65 
- 1031      73 65 72 76 
- 1031      65 64 00 
- 1032                 	.LASF110:
- 1033 026e 70 69 6F 5F 		.ascii "offset\000"
- 1033      69 32 63 5F 
- 1033      70 75 6C 6C 
- 1033      5F 6D 6F 64 
- 1033      65 5F 73 74 
- 1034                 	.LASF34:
- 1035 027e 6F 66 66 73 		.ascii "l2cap_status_conn_not_ongoing\000"
- 1035      65 74 00 
- 1036                 	.LASF114:
- 1037 0282 6C 32 63 61 		.ascii "C:\\Users\\Neil\\Documents\\firmware\\cryptobeacon\000"
- 1037      70 5F 73 74 
- 1037      61 74 75 73 
- 1037      5F 63 6F 6E 
- 1037      6E 5F 6E 6F 
- 1038                 	.LASF45:
- 1039 0291 43 3A 5C 55 		.ascii "gatt_status_prepare_queue_full\000"
- 1039      73 65 72 73 
- 1039      5C 4E 65 69 
- 1039      6C 5C 44 6F 
- 1039      63 75 6D 65 
- 1040                 	.LASF76:
- 1041 02a8 67 61 74 74 		.ascii "sm_status_authentication_requirements\000"
- 1041      5F 73 74 61 
- 1041      74 75 73 5F 
- 1041      70 72 65 70 
- 1041      61 72 65 5F 
- 1042                 	.LASF18:
- 1043 02b7 73 6D 5F 73 		.ascii "i2c_status_fail\000"
- 1043      74 61 74 75 
- 1043      73 5F 61 75 
- 1043      74 68 65 6E 
- 1043      74 69 63 61 
- 1044                 	.LASF30:
- 1045 02ca 69 32 63 5F 		.ascii "spi_status_fail_timeout\000"
+ 1018                 	.LASF90:
+ 1019 0214 61 70 70 5F 		.ascii "pio_i2c_pull_mode_weak_pull_down\000"
+ 1019      70 61 6E 69 
+ 1019      63 5F 6E 76 
+ 1019      6D 5F 77 72 
+ 1019      69 74 65 00 
+ 1020                 	.LASF49:
+ 1021 021e 70 69 6F 5F 		.ascii "gatt_status_invalid_length\000"
+ 1021      69 32 63 5F 
+ 1021      70 75 6C 6C 
+ 1021      5F 6D 6F 64 
+ 1021      65 5F 77 65 
+ 1022                 	.LASF105:
+ 1023 022f 67 61 74 74 		.ascii "app_panic_con_param_update\000"
+ 1023      5F 73 74 61 
+ 1023      74 75 73 5F 
+ 1023      69 6E 76 61 
+ 1023      6C 69 64 5F 
+ 1024                 	.LASF5:
+ 1025 023c 61 70 70 5F 		.ascii "long int\000"
+ 1025      70 61 6E 69 
+ 1025      63 5F 63 6F 
+ 1025      6E 5F 70 61 
+ 1025      72 61 6D 5F 
+ 1026                 	.LASF73:
+ 1027 024a 6C 6F 6E 67 		.ascii "sm_status_reserved\000"
+ 1027      20 69 6E 74 
+ 1027      00 
+ 1028                 	.LASF95:
+ 1029 024e 73 6D 5F 73 		.ascii "pio_i2c_pull_mode_strong_sticky\000"
+ 1029      74 61 74 75 
+ 1029      73 5F 72 65 
+ 1029      73 65 72 76 
+ 1029      65 64 00 
+ 1030                 	.LASF110:
+ 1031 0258 70 69 6F 5F 		.ascii "offset\000"
+ 1031      69 32 63 5F 
+ 1031      70 75 6C 6C 
+ 1031      5F 6D 6F 64 
+ 1031      65 5F 73 74 
+ 1032                 	.LASF34:
+ 1033 0268 6F 66 66 73 		.ascii "l2cap_status_conn_not_ongoing\000"
+ 1033      65 74 00 
+ 1034                 	.LASF114:
+ 1035 026b 6C 32 63 61 		.ascii "C:\\Users\\Neil\\Documents\\firmware\\cryptobeacon\000"
+ 1035      70 5F 73 74 
+ 1035      61 74 75 73 
+ 1035      5F 63 6F 6E 
+ 1035      6E 5F 6E 6F 
+ 1036                 	.LASF45:
+ 1037 027a 43 3A 5C 55 		.ascii "gatt_status_prepare_queue_full\000"
+ 1037      73 65 72 73 
+ 1037      5C 4E 65 69 
+ 1037      6C 5C 44 6F 
+ 1037      63 75 6D 65 
+ 1038                 	.LASF76:
+ 1039 0291 67 61 74 74 		.ascii "sm_status_authentication_requirements\000"
+ 1039      5F 73 74 61 
+ 1039      74 75 73 5F 
+ 1039      70 72 65 70 
+ 1039      61 72 65 5F 
+ 1040                 	.LASF18:
+ 1041 02a1 73 6D 5F 73 		.ascii "i2c_status_fail\000"
+ 1041      74 61 74 75 
+ 1041      73 5F 61 75 
+ 1041      74 68 65 6E 
+ 1041      74 69 63 61 
+ 1042                 	.LASF30:
+ 1043 02b4 69 32 63 5F 		.ascii "spi_status_fail_timeout\000"
+ 1043      73 74 61 74 
+ 1043      75 73 5F 66 
+ 1043      61 69 6C 00 
+ 1044                 	.LASF39:
+ 1045 02bc 73 70 69 5F 		.ascii "gatt_status_write_not_permitted\000"
  1045      73 74 61 74 
  1045      75 73 5F 66 
- 1045      61 69 6C 00 
- 1046                 	.LASF39:
- 1047 02d2 73 70 69 5F 		.ascii "gatt_status_write_not_permitted\000"
- 1047      73 74 61 74 
- 1047      75 73 5F 66 
- 1047      61 69 6C 5F 
- 1047      74 69 6D 65 
- 1048                 	.LASF77:
- 1049 02de 67 61 74 74 		.ascii "sm_status_confirm_value_failed\000"
- 1049      5F 73 74 61 
- 1049      74 75 73 5F 
- 1049      77 72 69 74 
- 1049      65 5F 6E 6F 
- 1050                 	.LASF109:
- 1051 02ee 73 6D 5F 73 		.ascii "length\000"
- 1051      74 61 74 75 
- 1051      73 5F 63 6F 
- 1051      6E 66 69 72 
- 1051      6D 5F 76 61 
- 1052                 	.LASF66:
- 1053 02fe 6C 65 6E 67 		.ascii "gatt_status_invalid_operation\000"
- 1053      74 68 00 
- 1054                 	.LASF65:
- 1055 0301 67 61 74 74 		.ascii "gatt_status_invalid_permissions\000"
+ 1045      61 69 6C 5F 
+ 1045      74 69 6D 65 
+ 1046                 	.LASF77:
+ 1047 02c8 67 61 74 74 		.ascii "sm_status_confirm_value_failed\000"
+ 1047      5F 73 74 61 
+ 1047      74 75 73 5F 
+ 1047      77 72 69 74 
+ 1047      65 5F 6E 6F 
+ 1048                 	.LASF109:
+ 1049 02d8 73 6D 5F 73 		.ascii "length\000"
+ 1049      74 61 74 75 
+ 1049      73 5F 63 6F 
+ 1049      6E 66 69 72 
+ 1049      6D 5F 76 61 
+ 1050                 	.LASF66:
+ 1051 02e7 6C 65 6E 67 		.ascii "gatt_status_invalid_operation\000"
+ 1051      74 68 00 
+ 1052                 	.LASF65:
+ 1053 02eb 67 61 74 74 		.ascii "gatt_status_invalid_permissions\000"
+ 1053      5F 73 74 61 
+ 1053      74 75 73 5F 
+ 1053      69 6E 76 61 
+ 1053      6C 69 64 5F 
+ 1054                 	.LASF0:
+ 1055 02fa 67 61 74 74 		.ascii "unsigned char\000"
  1055      5F 73 74 61 
  1055      74 75 73 5F 
  1055      69 6E 76 61 
  1055      6C 69 64 5F 
- 1056                 	.LASF0:
- 1057 0310 67 61 74 74 		.ascii "unsigned char\000"
- 1057      5F 73 74 61 
- 1057      74 75 73 5F 
- 1057      69 6E 76 61 
- 1057      6C 69 64 5F 
- 1058                 	.LASF97:
- 1059 0320 75 6E 73 69 		.ascii "app_panic_set_advert_data\000"
- 1059      67 6E 65 64 
- 1059      20 63 68 61 
- 1059      72 00 
- 1060                 	.LASF104:
- 1061 0327 61 70 70 5F 		.ascii "app_panic_add_whitelist\000"
+ 1056                 	.LASF97:
+ 1057 030a 75 6E 73 69 		.ascii "app_panic_set_advert_data\000"
+ 1057      67 6E 65 64 
+ 1057      20 63 68 61 
+ 1057      72 00 
+ 1058                 	.LASF104:
+ 1059 0311 61 70 70 5F 		.ascii "app_panic_add_whitelist\000"
+ 1059      70 61 6E 69 
+ 1059      63 5F 73 65 
+ 1059      74 5F 61 64 
+ 1059      76 65 72 74 
+ 1060                 	.LASF112:
+ 1061 031e 61 70 70 5F 		.ascii "GNU C 4.3.4 CSR version 29 for xap []\000"
  1061      70 61 6E 69 
- 1061      63 5F 73 65 
- 1061      74 5F 61 64 
- 1061      76 65 72 74 
- 1062                 	.LASF91:
- 1063 0334 61 70 70 5F 		.ascii "pio_i2c_pull_mode_weak_pull_up\000"
- 1063      70 61 6E 69 
- 1063      63 5F 61 64 
- 1063      64 5F 77 68 
- 1063      69 74 65 6C 
- 1064                 	.LASF3:
- 1065 0340 70 69 6F 5F 		.ascii "signed char\000"
- 1065      69 32 63 5F 
- 1065      70 75 6C 6C 
- 1065      5F 6D 6F 64 
- 1065      65 5F 77 65 
- 1066                 	.LASF8:
- 1067 0350 73 69 67 6E 		.ascii "nvm_status_empty\000"
- 1067      65 64 20 63 
- 1067      68 61 72 00 
- 1068                 	.LASF6:
- 1069 0356 6E 76 6D 5F 		.ascii "unsigned int\000"
- 1069      73 74 61 74 
- 1069      75 73 5F 65 
- 1069      6D 70 74 79 
+ 1061      63 5F 61 64 
+ 1061      64 5F 77 68 
+ 1061      69 74 65 6C 
+ 1062                 	.LASF3:
+ 1063 032a 47 4E 55 20 		.ascii "signed char\000"
+ 1063      43 20 34 2E 
+ 1063      33 2E 34 20 
+ 1063      43 53 52 20 
+ 1063      76 65 72 73 
+ 1064                 	.LASF8:
+ 1065 033d 73 69 67 6E 		.ascii "nvm_status_empty\000"
+ 1065      65 64 20 63 
+ 1065      68 61 72 00 
+ 1066                 	.LASF6:
+ 1067 0343 6E 76 6D 5F 		.ascii "unsigned int\000"
+ 1067      73 74 61 74 
+ 1067      75 73 5F 65 
+ 1067      6D 70 74 79 
+ 1067      00 
+ 1068                 	.LASF96:
+ 1069 034b 75 6E 73 69 		.ascii "app_panic_set_advert_params\000"
+ 1069      67 6E 65 64 
+ 1069      20 69 6E 74 
  1069      00 
- 1070                 	.LASF96:
- 1071 035e 75 6E 73 69 		.ascii "app_panic_set_advert_params\000"
- 1071      67 6E 65 64 
- 1071      20 69 6E 74 
- 1071      00 
- 1072                 	.LASF59:
- 1073 0365 61 70 70 5F 		.ascii "gatt_status_invalid_uuid\000"
- 1073      70 61 6E 69 
- 1073      63 5F 73 65 
- 1073      74 5F 61 64 
- 1073      76 65 72 74 
- 1074                 	.LASF29:
- 1075 0373 67 61 74 74 		.ascii "spi_status_fail\000"
- 1075      5F 73 74 61 
- 1075      74 75 73 5F 
- 1075      69 6E 76 61 
- 1075      6C 69 64 5F 
- 1076                 	.LASF100:
- 1077 037f 73 70 69 5F 		.ascii "app_panic_nvm_read\000"
- 1077      73 74 61 74 
- 1077      75 73 5F 66 
- 1077      61 69 6C 00 
- 1078                 	.LASF56:
- 1079 0387 61 70 70 5F 		.ascii "gatt_status_busy\000"
- 1079      70 61 6E 69 
- 1079      63 5F 6E 76 
- 1079      6D 5F 72 65 
- 1079      61 64 00 
- 1080                 	.LASF98:
- 1081 0391 67 61 74 74 		.ascii "app_panic_set_scan_rsp_data\000"
- 1081      5F 73 74 61 
- 1081      74 75 73 5F 
- 1081      62 75 73 79 
- 1081      00 
- 1082                 	.LASF1:
- 1083 0399 61 70 70 5F 		.ascii "short unsigned int\000"
- 1083      70 61 6E 69 
- 1083      63 5F 73 65 
- 1083      74 5F 73 63 
- 1083      61 6E 5F 72 
- 1084                 	.LASF74:
- 1085 03a7 73 68 6F 72 		.ascii "sm_status_passkey_entry_failed\000"
- 1085      74 20 75 6E 
- 1085      73 69 67 6E 
- 1085      65 64 20 69 
- 1085      6E 74 00 
- 1086                 	.LASF38:
- 1087 03b1 73 6D 5F 73 		.ascii "gatt_status_read_not_permitted\000"
- 1087      74 61 74 75 
- 1087      73 5F 70 61 
- 1087      73 73 6B 65 
- 1087      79 5F 65 6E 
- 1088                 	.LASF9:
- 1089 03c0 67 61 74 74 		.ascii "nvm_status_needs_erase\000"
- 1089      5F 73 74 61 
- 1089      74 75 73 5F 
- 1089      72 65 61 64 
- 1089      5F 6E 6F 74 
- 1090                 	.LASF12:
- 1091 03d0 6E 76 6D 5F 		.ascii "nvm_status_invalid_offset\000"
+ 1070                 	.LASF59:
+ 1071 0352 61 70 70 5F 		.ascii "gatt_status_invalid_uuid\000"
+ 1071      70 61 6E 69 
+ 1071      63 5F 73 65 
+ 1071      74 5F 61 64 
+ 1071      76 65 72 74 
+ 1072                 	.LASF29:
+ 1073 0360 67 61 74 74 		.ascii "spi_status_fail\000"
+ 1073      5F 73 74 61 
+ 1073      74 75 73 5F 
+ 1073      69 6E 76 61 
+ 1073      6C 69 64 5F 
+ 1074                 	.LASF100:
+ 1075 036c 73 70 69 5F 		.ascii "app_panic_nvm_read\000"
+ 1075      73 74 61 74 
+ 1075      75 73 5F 66 
+ 1075      61 69 6C 00 
+ 1076                 	.LASF56:
+ 1077 0374 61 70 70 5F 		.ascii "gatt_status_busy\000"
+ 1077      70 61 6E 69 
+ 1077      63 5F 6E 76 
+ 1077      6D 5F 72 65 
+ 1077      61 64 00 
+ 1078                 	.LASF98:
+ 1079 037e 67 61 74 74 		.ascii "app_panic_set_scan_rsp_data\000"
+ 1079      5F 73 74 61 
+ 1079      74 75 73 5F 
+ 1079      62 75 73 79 
+ 1079      00 
+ 1080                 	.LASF1:
+ 1081 0386 61 70 70 5F 		.ascii "short unsigned int\000"
+ 1081      70 61 6E 69 
+ 1081      63 5F 73 65 
+ 1081      74 5F 73 63 
+ 1081      61 6E 5F 72 
+ 1082                 	.LASF74:
+ 1083 0394 73 68 6F 72 		.ascii "sm_status_passkey_entry_failed\000"
+ 1083      74 20 75 6E 
+ 1083      73 69 67 6E 
+ 1083      65 64 20 69 
+ 1083      6E 74 00 
+ 1084                 	.LASF38:
+ 1085 039e 73 6D 5F 73 		.ascii "gatt_status_read_not_permitted\000"
+ 1085      74 61 74 75 
+ 1085      73 5F 70 61 
+ 1085      73 73 6B 65 
+ 1085      79 5F 65 6E 
+ 1086                 	.LASF9:
+ 1087 03ad 67 61 74 74 		.ascii "nvm_status_needs_erase\000"
+ 1087      5F 73 74 61 
+ 1087      74 75 73 5F 
+ 1087      72 65 61 64 
+ 1087      5F 6E 6F 74 
+ 1088                 	.LASF12:
+ 1089 03bd 6E 76 6D 5F 		.ascii "nvm_status_invalid_offset\000"
+ 1089      73 74 61 74 
+ 1089      75 73 5F 6E 
+ 1089      65 65 64 73 
+ 1089      5F 65 72 61 
+ 1090                 	.LASF32:
+ 1091 03c8 6E 76 6D 5F 		.ascii "l2cap_status_invalid_conn_state\000"
  1091      73 74 61 74 
- 1091      75 73 5F 6E 
- 1091      65 65 64 73 
- 1091      5F 65 72 61 
- 1092                 	.LASF32:
- 1093 03db 6E 76 6D 5F 		.ascii "l2cap_status_invalid_conn_state\000"
- 1093      73 74 61 74 
- 1093      75 73 5F 69 
- 1093      6E 76 61 6C 
- 1093      69 64 5F 6F 
- 1094                 	.LASF67:
- 1095 03e8 6C 32 63 61 		.ascii "gatt_status_invalid_param_value\000"
- 1095      70 5F 73 74 
- 1095      61 74 75 73 
- 1095      5F 69 6E 76 
- 1095      61 6C 69 64 
- 1096                 	.LASF35:
- 1097 03f8 67 61 74 74 		.ascii "l2cap_status_buffer_full\000"
- 1097      5F 73 74 61 
- 1097      74 75 73 5F 
- 1097      69 6E 76 61 
- 1097      6C 69 64 5F 
- 1098                 	.LASF31:
- 1099 0408 6C 32 63 61 		.ascii "spi_status_page_overflow\000"
- 1099      70 5F 73 74 
- 1099      61 74 75 73 
- 1099      5F 62 75 66 
- 1099      66 65 72 5F 
- 1100                 	.LASF75:
- 1101 0415 73 70 69 5F 		.ascii "sm_status_oob_not_available\000"
- 1101      73 74 61 74 
- 1101      75 73 5F 70 
- 1101      61 67 65 5F 
- 1101      6F 76 65 72 
- 1102                 	.LASF79:
- 1103 0421 73 6D 5F 73 		.ascii "sm_status_encryption_key_size\000"
+ 1091      75 73 5F 69 
+ 1091      6E 76 61 6C 
+ 1091      69 64 5F 6F 
+ 1092                 	.LASF67:
+ 1093 03d5 6C 32 63 61 		.ascii "gatt_status_invalid_param_value\000"
+ 1093      70 5F 73 74 
+ 1093      61 74 75 73 
+ 1093      5F 69 6E 76 
+ 1093      61 6C 69 64 
+ 1094                 	.LASF35:
+ 1095 03e5 67 61 74 74 		.ascii "l2cap_status_buffer_full\000"
+ 1095      5F 73 74 61 
+ 1095      74 75 73 5F 
+ 1095      69 6E 76 61 
+ 1095      6C 69 64 5F 
+ 1096                 	.LASF31:
+ 1097 03f5 6C 32 63 61 		.ascii "spi_status_page_overflow\000"
+ 1097      70 5F 73 74 
+ 1097      61 74 75 73 
+ 1097      5F 62 75 66 
+ 1097      66 65 72 5F 
+ 1098                 	.LASF75:
+ 1099 0402 73 70 69 5F 		.ascii "sm_status_oob_not_available\000"
+ 1099      73 74 61 74 
+ 1099      75 73 5F 70 
+ 1099      61 67 65 5F 
+ 1099      6F 76 65 72 
+ 1100                 	.LASF79:
+ 1101 040e 73 6D 5F 73 		.ascii "sm_status_encryption_key_size\000"
+ 1101      74 61 74 75 
+ 1101      73 5F 6F 6F 
+ 1101      62 5F 6E 6F 
+ 1101      74 5F 61 76 
+ 1102                 	.LASF82:
+ 1103 041c 73 6D 5F 73 		.ascii "sm_status_repeated_attempts\000"
  1103      74 61 74 75 
- 1103      73 5F 6F 6F 
- 1103      62 5F 6E 6F 
- 1103      74 5F 61 76 
- 1104                 	.LASF82:
- 1105 042f 73 6D 5F 73 		.ascii "sm_status_repeated_attempts\000"
+ 1103      73 5F 65 6E 
+ 1103      63 72 79 70 
+ 1103      74 69 6F 6E 
+ 1104                 	.LASF53:
+ 1105 042b 73 6D 5F 73 		.ascii "gatt_status_insufficient_resources\000"
  1105      74 61 74 75 
- 1105      73 5F 65 6E 
- 1105      63 72 79 70 
- 1105      74 69 6F 6E 
- 1106                 	.LASF53:
- 1107 043e 73 6D 5F 73 		.ascii "gatt_status_insufficient_resources\000"
- 1107      74 61 74 75 
- 1107      73 5F 72 65 
- 1107      70 65 61 74 
- 1107      65 64 5F 61 
+ 1105      73 5F 72 65 
+ 1105      70 65 61 74 
+ 1105      65 64 5F 61 
+ 1106                 	.LASF91:
+ 1107 0439 67 61 74 74 		.ascii "pio_i2c_pull_mode_weak_pull_up\000"
+ 1107      5F 73 74 61 
+ 1107      74 75 73 5F 
+ 1107      69 6E 73 75 
+ 1107      66 66 69 63 
  1108                 	.LASF58:
- 1109 044c 67 61 74 74 		.ascii "gatt_status_invalid_mtu\000"
- 1109      5F 73 74 61 
- 1109      74 75 73 5F 
- 1109      69 6E 73 75 
- 1109      66 66 69 63 
+ 1109 044b 70 69 6F 5F 		.ascii "gatt_status_invalid_mtu\000"
+ 1109      69 32 63 5F 
+ 1109      70 75 6C 6C 
+ 1109      5F 6D 6F 64 
+ 1109      65 5F 77 65 
  1110                 	.LASF108:
- 1111 045e 67 61 74 74 		.ascii "buffer\000"
+ 1111 045a 67 61 74 74 		.ascii "buffer\000"
  1111      5F 73 74 61 
  1111      74 75 73 5F 
  1111      69 6E 76 61 
  1111      6C 69 64 5F 
  1112                 	.LASF52:
- 1113 046a 62 75 66 66 		.ascii "gatt_status_unsupported_group_type\000"
+ 1113 0466 62 75 66 66 		.ascii "gatt_status_unsupported_group_type\000"
  1113      65 72 00 
  1114                 	.LASF2:
- 1115 046d 67 61 74 74 		.ascii "long unsigned int\000"
+ 1115 046a 67 61 74 74 		.ascii "long unsigned int\000"
  1115      5F 73 74 61 
  1115      74 75 73 5F 
  1115      75 6E 73 75 
  1115      70 70 6F 72 
  1116                 	.LASF40:
- 1117 047f 6C 6F 6E 67 		.ascii "gatt_status_invalid_pdu\000"
+ 1117 047b 6C 6F 6E 67 		.ascii "gatt_status_invalid_pdu\000"
  1117      20 75 6E 73 
  1117      69 67 6E 65 
  1117      64 20 69 6E 
  1117      74 00 
  1118                 	.LASF11:
- 1119 0488 67 61 74 74 		.ascii "nvm_status_not_initialised\000"
+ 1119 0484 67 61 74 74 		.ascii "nvm_status_not_initialised\000"
  1119      5F 73 74 61 
  1119      74 75 73 5F 
  1119      69 6E 76 61 
  1119      6C 69 64 5F 
  1120                 	.LASF36:
- 1121 0494 6E 76 6D 5F 		.ascii "ls_status_limited_advertising_timeout\000"
+ 1121 0490 6E 76 6D 5F 		.ascii "ls_status_limited_advertising_timeout\000"
  1121      73 74 61 74 
  1121      75 73 5F 6E 
  1121      6F 74 5F 69 
  1121      6E 69 74 69 
  1122                 	.LASF85:
- 1123 04a1 6C 73 5F 73 		.ascii "sm_status_timeout\000"
+ 1123 049e 6C 73 5F 73 		.ascii "sm_status_timeout\000"
  1123      74 61 74 75 
  1123      73 5F 6C 69 
  1123      6D 69 74 65 
  1123      64 5F 61 64 
  1124                 	.LASF48:
- 1125 04b4 73 6D 5F 73 		.ascii "gatt_status_insufficient_encr_key_size\000"
+ 1125 04b1 73 6D 5F 73 		.ascii "gatt_status_insufficient_encr_key_size\000"
  1125      74 61 74 75 
  1125      73 5F 74 69 
  1125      6D 65 6F 75 
  1125      74 00 
  1126                 	.LASF27:
- 1127 04bd 67 61 74 74 		.ascii "spi_status_hardware_busy\000"
+ 1127 04ba 67 61 74 74 		.ascii "spi_status_hardware_busy\000"
  1127      5F 73 74 61 
  1127      74 75 73 5F 
  1127      69 6E 73 75 
  1127      66 66 69 63 
  1128                 	.LASF113:
- 1129 04d1 73 70 69 5F 		.ascii "nvm_access.c\000"
+ 1129 04cd 73 70 69 5F 		.ascii "nvm_access.c\000"
  1129      73 74 61 74 
  1129      75 73 5F 68 
  1129      61 72 64 77 
  1129      61 72 65 5F 
  1130                 	.LASF69:
- 1131 04dd 6E 76 6D 5F 		.ascii "gatt_status_irq_proceed\000"
+ 1131 04da 6E 76 6D 5F 		.ascii "gatt_status_irq_proceed\000"
  1131      61 63 63 65 
  1131      73 73 2E 63 
  1131      00 
  1132                 	.LASF61:
- 1133 04e4 67 61 74 74 		.ascii "gatt_status_success_sent\000"
+ 1133 04e0 67 61 74 74 		.ascii "gatt_status_success_sent\000"
  1133      5F 73 74 61 
  1133      74 75 73 5F 
  1133      69 72 71 5F 
  1133      70 72 6F 63 
  1134                 	.LASF72:
- 1135 04f0 67 61 74 74 		.ascii "gatt_status_app_last_code\000"
+ 1135 04ec 67 61 74 74 		.ascii "gatt_status_app_last_code\000"
  1135      5F 73 74 61 
  1135      74 75 73 5F 
  1135      73 75 63 63 
  1135      65 73 73 5F 
  1136                 	.LASF92:
- 1137 04fc 67 61 74 74 		.ascii "pio_i2c_pull_mode_strong_pull_down\000"
+ 1137 04f9 67 61 74 74 		.ascii "pio_i2c_pull_mode_strong_pull_down\000"
  1137      5F 73 74 61 
  1137      74 75 73 5F 
  1137      61 70 70 5F 
  1137      6C 61 73 74 
  1138                 	.LASF50:
- 1139 0509 70 69 6F 5F 		.ascii "gatt_status_unlikely_error\000"
+ 1139 0506 70 69 6F 5F 		.ascii "gatt_status_unlikely_error\000"
  1139      69 32 63 5F 
  1139      70 75 6C 6C 
  1139      5F 6D 6F 64 
  1139      65 5F 73 74 
  1140                 	.LASF14:
- 1141 051b 67 61 74 74 		.ascii "i2c_status_waiting\000"
+ 1141 0517 67 61 74 74 		.ascii "i2c_status_waiting\000"
  1141      5F 73 74 61 
  1141      74 75 73 5F 
  1141      75 6E 6C 69 
  1141      6B 65 6C 79 
  1142                 	.LASF62:
- 1143 0528 69 32 63 5F 		.ascii "gatt_status_invalid_cid\000"
+ 1143 0525 69 32 63 5F 		.ascii "gatt_status_invalid_cid\000"
  1143      73 74 61 74 
  1143      75 73 5F 77 
  1143      61 69 74 69 
  1143      6E 67 00 
  1144                 	.LASF84:
- 1145 0532 67 61 74 74 		.ascii "sm_status_last_standardised\000"
+ 1145 052e 67 61 74 74 		.ascii "sm_status_last_standardised\000"
  1145      5F 73 74 61 
  1145      74 75 73 5F 
  1145      69 6E 76 61 
  1145      6C 69 64 5F 
  1146                 	.LASF102:
- 1147 053e 73 6D 5F 73 		.ascii "app_panic_read_tx_pwr_level\000"
+ 1147 053a 73 6D 5F 73 		.ascii "app_panic_read_tx_pwr_level\000"
  1147      74 61 74 75 
  1147      73 5F 6C 61 
  1147      73 74 5F 73 
  1147      74 61 6E 64 
  1148                 	.LASF64:
- 1149 054c 61 70 70 5F 		.ascii "gatt_status_db_full\000"
+ 1149 0548 61 70 70 5F 		.ascii "gatt_status_db_full\000"
  1149      70 61 6E 69 
  1149      63 5F 72 65 
  1149      61 64 5F 74 
  1149      78 5F 70 77 
  1150                 	.LASF94:
- 1151 055a 67 61 74 74 		.ascii "pio_i2c_pull_mode_weak_sticky\000"
+ 1151 0556 67 61 74 74 		.ascii "pio_i2c_pull_mode_weak_sticky\000"
  1151      5F 73 74 61 
  1151      74 75 73 5F 
  1151      64 62 5F 66 
  1151      75 6C 6C 00 
  1152                 	.LASF107:
- 1153 0564 70 69 6F 5F 		.ascii "app_panic_unexpected_beep_type\000"
+ 1153 0560 70 69 6F 5F 		.ascii "app_panic_unexpected_beep_type\000"
  1153      69 32 63 5F 
  1153      70 75 6C 6C 
  1153      5F 6D 6F 64 
  1153      65 5F 77 65 
  1154                 	.LASF7:
- 1155 0573 61 70 70 5F 		.ascii "sys_status_success\000"
+ 1155 056f 61 70 70 5F 		.ascii "sys_status_success\000"
  1155      70 61 6E 69 
  1155      63 5F 75 6E 
  1155      65 78 70 65 
  1155      63 74 65 64 
  1156                 	.LASF15:
- 1157 0582 73 79 73 5F 		.ascii "i2c_status_firmware_busy\000"
+ 1157 057f 73 79 73 5F 		.ascii "i2c_status_firmware_busy\000"
  1157      73 74 61 74 
  1157      75 73 5F 73 
  1157      75 63 63 65 
  1157      73 73 00 
  1158                 	.LASF13:
- 1159 058c 69 32 63 5F 		.ascii "nvm_status_invalid_buffer\000"
+ 1159 0588 69 32 63 5F 		.ascii "nvm_status_invalid_buffer\000"
  1159      73 74 61 74 
  1159      75 73 5F 66 
  1159      69 72 6D 77 
  1159      61 72 65 5F 
  1160                 	.LASF63:
- 1161 0598 6E 76 6D 5F 		.ascii "gatt_status_invalid_db\000"
+ 1161 0595 6E 76 6D 5F 		.ascii "gatt_status_invalid_db\000"
  1161      73 74 61 74 
  1161      75 73 5F 69 
  1161      6E 76 61 6C 
  1161      69 64 5F 62 
  1162                 	.LASF103:
- 1163 05a5 67 61 74 74 		.ascii "app_panic_delete_whitelist\000"
+ 1163 05a2 67 61 74 74 		.ascii "app_panic_delete_whitelist\000"
  1163      5F 73 74 61 
  1163      74 75 73 5F 
  1163      69 6E 76 61 
  1163      6C 69 64 5F 
  1164                 	.LASF46:
- 1165 05b1 61 70 70 5F 		.ascii "gatt_status_attr_not_found\000"
+ 1165 05ad 61 70 70 5F 		.ascii "gatt_status_attr_not_found\000"
  1165      70 61 6E 69 
  1165      63 5F 64 65 
  1165      6C 65 74 65 
  1165      5F 77 68 69 
- 1166                 		.ident	"GCC: (GNU) 4.3.4 CSR version 28 for xap [2131110]"
- 1167 05be 67 61 74 74 	...
+ 1166                 		.ident	"GCC: (GNU) 4.3.4 CSR version 29 for xap []"
+ 1167 05bb 67 61 74 74 	...
  1167      5F 73 74 61 
  1167      74 75 73 5F 
  1167      61 74 74 72 

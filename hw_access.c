@@ -24,19 +24,13 @@
  *============================================================================*/
 
 #include "hw_access.h"      /* Interface to this file */
+#include "hw_config.h"      /* PIO definitions */
 #include "cryptobeacon.h"    /* Definitions used throughout the GATT server */
+#include "leds.h"
 
 /*============================================================================*
  *  Private Definitions
  *============================================================================*/
-
-/* Setup PIO 11 as Button PIO */
-#define BUTTON_PIO                  (3)
-
-#define BUTTON_PIO_MASK             (PIO_BIT_MASK(BUTTON_PIO))
-
-/* LEDs are on PIO9:11 */
-#define LED_PIO_MASK                (0x00000E00UL)
 
 /* Extra long button press timer */
 #define EXTRA_LONG_BUTTON_PRESS_TIMER \
@@ -108,6 +102,18 @@ static void handleExtraLongButtonPress(timer_id tid)
  *  Public Function Implementations
  *============================================================================*/
 
+extern void IndicateAdvertisingServer(void) {
+    SetLEDColor(20, 20, 0);     // sort of orange
+}
+
+extern void IndicateConnection(void) {
+    SetLEDColor(0, 400, 0);     // green
+}
+
+extern void IndicateUnhandledState(void) {
+    SetLEDColor(5, 0, 0);
+}
+
 /*----------------------------------------------------------------------------*
  *  NAME
  *      InitHardware
@@ -142,10 +148,11 @@ extern void InitHardware(void)
     PioSetEventMask(BUTTON_PIO_MASK, pio_event_mode_both);
 
     /* Set LEDs as outputs, default high (LED off) */
-    PioSetDirs(0x00000E00UL, TRUE);     // LEDs are set to output high (off)
-    PioSets(0x00000E00UL, 0x00000E00UL);
-    PioSetPullModes(0x00000E00UL, pio_mode_no_pulls);
-
+    //PioSetDirs(0x00000E00UL, TRUE);     // LEDs are set to output high (off)
+    //PioSets(0x00000E00UL, 0x00000E00UL);
+    //PioSetPullModes(0x00000E00UL, pio_mode_no_pulls);
+    initPWMs();
+    
     /* Save power by changing the I2C pull mode to pull down.*/
     PioSetI2CPullMode(pio_i2c_pull_mode_strong_pull_down);
 
