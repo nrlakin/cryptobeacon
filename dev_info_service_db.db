@@ -34,7 +34,7 @@ primary_service {
         uuid : UUID_DEVICE_INFO_SERIAL_NUMBER,
         properties : read,
         name : "DEVICE_INFO_SERIAL_NUMBER",
-        value : "CSR-GATT-SERVER-001"
+        value : "CRYPTOBEACON-001"
        
     },
 
@@ -46,7 +46,7 @@ primary_service {
         flags : [FLAG_ENCR_R],
 #endif /*PAIRING_SUPPORT*/
         name : "DEVICE_INFO_MODEL_NUMBER",
-        value : "CSR-GATT-SERVER-MODEL-001"
+        value : "CRYPTOBEACON-MODEL-001"
        
     },
 
@@ -94,7 +94,7 @@ primary_service {
         flags : [FLAG_ENCR_R],
 #endif /*PAIRING_SUPPORT*/
         name : "DEVICE_INFO_SOFTWARE_REVISION",
-        value : "Application version 2.6.0.0"
+        value : "Application version 0.1.0.0"
     },
     
     /* Manufacturer name characteristic */
@@ -105,7 +105,7 @@ primary_service {
         flags : [FLAG_ENCR_R],
 #endif /*PAIRING_SUPPORT*/
         name : "DEVICE_INFO_MANUFACTURER_NAME",
-        value : "Cambridge Silicon Radio"
+        value : "Neil & James"
     },
     
     /* PNP ID characteristic */

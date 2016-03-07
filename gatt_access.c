@@ -29,7 +29,7 @@
  *  Local Header Files
  *============================================================================*/
 
-#include "gatt_server.h"    /* Definitions used throughout the GATT server */
+#include "cryptobeacon.h"    /* Definitions used throughout the application */
 #include "app_gatt_db.h"    /* GATT database definitions */
 #include "gatt_access.h"    /* Interface to this file */
 #include "appearance.h"     /* Macros for commonly used appearance values */

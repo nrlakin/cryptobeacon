@@ -23,7 +23,7 @@
  *  Local Header Files
  *===========================================================================*/
 
-#include "gatt_server.h"    /* Definitions used throughout the GATT server */
+#include "cryptobeacon.h"    /* Definitions used throughout the cryptobeacon app */
 #include "battery_service.h"/* Interface to this file */
 #include "nvm_access.h"     /* Non-volatile memory access */
 #include "app_gatt_db.h"    /* GATT database definitions */
@@ -64,8 +64,8 @@ static BATT_DATA_T g_batt_data;
 #define BATTERY_CRITICAL_LEVEL                        (10)
 
 /* Battery minimum and maximum voltages in mV */
-#define BATTERY_FULL_BATTERY_VOLTAGE                  (3000)          /* 3.0V */
-#define BATTERY_FLAT_BATTERY_VOLTAGE                  (1800)          /* 1.8V */
+#define BATTERY_FULL_BATTERY_VOLTAGE                  (4000)          /* 4.0V */
+#define BATTERY_FLAT_BATTERY_VOLTAGE                  (3200)          /* 3.2V */
 
 /* Number of words of NVM memory used by Battery Service */
 #define BATTERY_SERVICE_NVM_MEMORY_WORDS              (1)

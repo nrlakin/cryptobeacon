@@ -18,20 +18,14 @@
  *  Public Definitions
  *============================================================================*/
 
-/* The ENABLE_BUZZER macro controls whether buzzer control code is compiled.
- * This flag may be disabled to prevent use of the buzzer, for example to
- * provide more accurate current consumption measurements.
- */
-#define ENABLE_BUZZER
-
 /* The PAIRING_SUPPORT macro controls whether pairing and encryption code is
  * compiled. This flag may be disabled for the applications that do not require
  * pairing.
  */
-#define PAIRING_SUPPORT
+//#define PAIRING_SUPPORT
 
 /* This macro when defined enables the debug output on UART */
-#define DEBUG_OUTPUT_ENABLED
+//#define DEBUG_OUTPUT_ENABLED
 
 /* The CONNECTED_IDLE_TIMEOUT_VALUE macro specifies how long the application may
  * be idle for during the Connected state. The device will disconnect when this

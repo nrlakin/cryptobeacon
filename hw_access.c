@@ -24,17 +24,19 @@
  *============================================================================*/
 
 #include "hw_access.h"      /* Interface to this file */
-#include "gatt_server.h"    /* Definitions used throughout the GATT server */
-#include "buzzer.h"         /* Buzzer functions */
+#include "cryptobeacon.h"    /* Definitions used throughout the GATT server */
 
 /*============================================================================*
  *  Private Definitions
  *============================================================================*/
 
 /* Setup PIO 11 as Button PIO */
-#define BUTTON_PIO                  (11)
+#define BUTTON_PIO                  (3)
 
 #define BUTTON_PIO_MASK             (PIO_BIT_MASK(BUTTON_PIO))
+
+/* LEDs are on PIO9:11 */
+#define LED_PIO_MASK                (0x00000E00UL)
 
 /* Extra long button press timer */
 #define EXTRA_LONG_BUTTON_PRESS_TIMER \
@@ -93,8 +95,8 @@ static void handleExtraLongButtonPress(timer_id tid)
         g_app_hw_data.button_press_tid = TIMER_INVALID;
 
         /* Sound three beeps to indicate pairing removal to user */
-        SoundBuzzer(buzzer_beep_thrice);
-        
+        // SoundBuzzer(buzzer_beep_thrice);
+
         /* Handle pairing removal */
         HandlePairingRemoval();
 
@@ -122,26 +124,31 @@ static void handleExtraLongButtonPress(timer_id tid)
 extern void InitHardware(void)
 {
     /* Setup PIOs
-     * PIO11 - Button
+     * PIO3 - Button
+     * PIO9:11 - LEDs
      */
-    /* Set the button PIO to user mode */
-    PioSetModes(BUTTON_PIO_MASK, pio_mode_user);
+    /* First, set strong pulldowns as default. */
+    PioSetModes(0xFFFFFFFFUL, pio_mode_user);
+    PioSetDirs(0xFFFFFFFFUL, FALSE);
+    PioSetPullModes(0xFFFFFFFFUL, pio_mode_strong_pull_down);
 
-    /* Set the PIO direction as input */
+    /* Set the Button PIO direction as input */
     PioSetDir(BUTTON_PIO, PIO_DIRECTION_INPUT);
 
     /* Pull up the PIO */
     PioSetPullModes(BUTTON_PIO_MASK, pio_mode_strong_pull_up);
 
-    /* Initialise buzzer hardware */
-    BuzzerInitHardware();
-
     /* Request an event when the button PIO changes state */
     PioSetEventMask(BUTTON_PIO_MASK, pio_event_mode_both);
 
+    /* Set LEDs as outputs, default high (LED off) */
+    PioSetDirs(0x00000E00UL, TRUE);     // LEDs are set to output high (off)
+    PioSets(0x00000E00UL, 0x00000E00UL);
+    PioSetPullModes(0x00000E00UL, pio_mode_no_pulls);
+
     /* Save power by changing the I2C pull mode to pull down.*/
     PioSetI2CPullMode(pio_i2c_pull_mode_strong_pull_down);
-    
+
 }
 
 /*----------------------------------------------------------------------------*
@@ -164,8 +171,6 @@ extern void HwDataInit(void)
     /* Initialise button press timer */
     g_app_hw_data.button_press_tid = TIMER_INVALID;
 
-    /* Initialise buzzer data */
-    BuzzerInitData();
 }
 
 /*----------------------------------------------------------------------------*
@@ -192,8 +197,6 @@ extern void HwDataReset(void)
         g_app_hw_data.button_press_tid = TIMER_INVALID;
     }
 
-    /* Reset buzzer data */
-    BuzzerResetData();
 }
 
 /*----------------------------------------------------------------------------*
@@ -228,7 +231,7 @@ extern void HandlePIOChangedEvent(pio_changed_data *pio_data)
              */
             TimerDelete(g_app_hw_data.button_press_tid);
 
-            g_app_hw_data.button_press_tid = 
+            g_app_hw_data.button_press_tid =
                 TimerCreate(EXTRA_LONG_BUTTON_PRESS_TIMER,
                                            TRUE, handleExtraLongButtonPress);
         }
@@ -237,18 +240,17 @@ extern void HandlePIOChangedEvent(pio_changed_data *pio_data)
             /* This event comes when a button is released. */
             if(g_app_hw_data.button_press_tid != TIMER_INVALID)
             {
-                /* Timer was already running. This means it was a short button 
+                /* Timer was already running. This means it was a short button
                  * press.
                  */
                 TimerDelete(g_app_hw_data.button_press_tid);
                 g_app_hw_data.button_press_tid = TIMER_INVALID;
 
                 /* Indicate short button press using short beep */
-                SoundBuzzer(buzzer_beep_short);
+                //SoundBuzzer(buzzer_beep_short);
 
                 HandleShortButtonPress();
             }
         }
     }
 }
-

@@ -1,0 +1,1719 @@
+   1                 		.file	"beacon.c"
+   2                 		.variant xap2+
+   3                 	
+   4                 		.small
+   5                 	
+   6                 		.section	.debug_abbrev,"",@progbits
+   7                 	.Ldebug_abbrev0:
+   8                 		.section	.debug_info,"",@progbits
+   9                 	.Ldebug_info0:
+  10                 		.section	.debug_line,"",@progbits
+  11                 	.Ldebug_line0:
+  12 0000 00 00 00 00 		.text
+  12      00 02 00 00 
+  12      00 00 01 01 
+  12      FB 0E 0D 00 
+  12      01 01 01 01 
+  13                 	.Ltext0:
+  14                 		.section	.text.startBeaconAdvertising,"ax",@progbits
+  15                 		.global	startBeaconAdvertising
+  16                 		.type	startBeaconAdvertising, @function
+  17                 	startBeaconAdvertising:
+  18                 	.LFB3:
+  19                 		.file 1 "beacon.c"
+   0:beacon.c      **** /******************************************************************************
+   1:beacon.c      ****  *  Copyright (C) Cambridge Silicon Radio Limited, 2014
+   2:beacon.c      ****  *
+   3:beacon.c      ****  *  FILE
+   4:beacon.c      ****  *      beacon.c
+   5:beacon.c      ****  *
+   6:beacon.c      ****  *  DESCRIPTION
+   7:beacon.c      ****  *      This file defines an advertising node implementation
+   8:beacon.c      ****  *
+   9:beacon.c      ****  *****************************************************************************/
+  10:beacon.c      **** 
+  11:beacon.c      **** /*============================================================================*
+  12:beacon.c      ****  *  SDK Header Files
+  13:beacon.c      ****  *============================================================================*/
+  14:beacon.c      **** 
+  15:beacon.c      **** #include <main.h>
+  16:beacon.c      **** #include <gap_app_if.h>
+  17:beacon.c      **** #include <config_store.h>
+  18:beacon.c      **** #include <pio.h>
+  19:beacon.c      **** #include <random.h>
+  20:beacon.c      **** /*============================================================================*
+  21:beacon.c      ****  *  Local Header File
+  22:beacon.c      ****  *============================================================================*/
+  23:beacon.c      **** 
+  24:beacon.c      **** #include "beacon.h"
+  25:beacon.c      **** 
+  26:beacon.c      **** /*============================================================================*
+  27:beacon.c      ****  *  Private Function Prototypes
+  28:beacon.c      ****  *============================================================================*/
+  29:beacon.c      **** 
+  30:beacon.c      **** static void appSetRandomAddress(void);
+  31:beacon.c      **** 
+  32:beacon.c      **** /*============================================================================*
+  33:beacon.c      ****  *  Private Function Implementations
+  34:beacon.c      ****  *============================================================================*/
+  35:beacon.c      **** 
+  36:beacon.c      **** /*----------------------------------------------------------------------------*
+  37:beacon.c      ****  *  NAME
+  38:beacon.c      ****  *      appSetRandomAddress
+  39:beacon.c      ****  *
+  40:beacon.c      ****  *  DESCRIPTION
+  41:beacon.c      ****  *      This function generates a non-resolvable private address and sets it
+  42:beacon.c      ****  *      to the firmware.
+  43:beacon.c      ****  *
+  44:beacon.c      ****  *  RETURNS
+  45:beacon.c      ****  *      Nothing.
+  46:beacon.c      ****  *
+  47:beacon.c      ****  *----------------------------------------------------------------------------*/
+  48:beacon.c      **** static void appSetRandomAddress(void)
+  49:beacon.c      **** {
+  50:beacon.c      ****     BD_ADDR_T addr;
+  51:beacon.c      **** 
+  52:beacon.c      ****     /* "completely" random MAC addresses by default: */
+  53:beacon.c      ****     for(;;)
+  54:beacon.c      ****     {
+  55:beacon.c      ****         uint32 now = TimeGet32();
+  56:beacon.c      ****         /* Random32() is just two of them, no use */
+  57:beacon.c      ****         uint32 rnd = Random16();
+  58:beacon.c      ****         addr.uap = 0xff & (rnd ^ now);
+  59:beacon.c      ****         /* No sub-part may be zero or all-1s */
+  60:beacon.c      ****         if ( 0 == addr.uap || 0xff == addr.uap ) continue;
+  61:beacon.c      ****         addr.lap = 0xffffff & ((now >> 8) ^ (73 * rnd));
+  62:beacon.c      ****         if ( 0 == addr.lap || 0xffffff == addr.lap ) continue;
+  63:beacon.c      ****         addr.nap = 0x3fff & rnd;
+  64:beacon.c      ****         if ( 0 == addr.nap || 0x3fff == addr.nap ) continue;
+  65:beacon.c      ****         break;
+  66:beacon.c      ****     }
+  67:beacon.c      **** 
+  68:beacon.c      ****     /* Set it to actually be an acceptable random address */
+  69:beacon.c      ****     addr.nap &= ~BD_ADDR_NAP_RANDOM_TYPE_MASK;
+  70:beacon.c      ****     addr.nap |=  BD_ADDR_NAP_RANDOM_TYPE_NONRESOLV;
+  71:beacon.c      ****     GapSetRandomAddress(&addr);
+  72:beacon.c      **** }
+  73:beacon.c      **** 
+  74:beacon.c      **** 
+  75:beacon.c      **** /*----------------------------------------------------------------------------*
+  76:beacon.c      ****  *  NAME
+  77:beacon.c      ****  *      startBeaconAdvertising
+  78:beacon.c      ****  *
+  79:beacon.c      ****  *  DESCRIPTION
+  80:beacon.c      ****  *      This function is called to start iBeacon advertisements.
+  81:beacon.c      ****  *
+  82:beacon.c      ****  *      Advertisement packet will contain Flags AD and Manufacturer-specific
+  83:beacon.c      ****  *      AD with Manufacturer id set to CSR and payload set to the value of
+  84:beacon.c      ****  *      the User Key 0. The payload size is set by the User Key 1.
+  85:beacon.c      ****  *
+  86:beacon.c      ****  *      +--------+-------------------------------------------------+
+  87:beacon.c      ****  *      |FLAGS AD|MANUFACTURER AD                                  |
+  88:beacon.c      ****  *      +--------+-------------------------------------------------+
+  89:beacon.c      ****  *       0      2 3
+  90:beacon.c      ****  *
+  91:beacon.c      ****  *  RETURNS
+  92:beacon.c      ****  *      Nothing.
+  93:beacon.c      ****  *
+  94:beacon.c      ****  *---------------------------------------------------------------------------*/
+  95:beacon.c      **** extern void startBeaconAdvertising(void)
+  96:beacon.c      **** {
+  20                 		#0x002d
+  21 0000 2D 0B       	.LCFI0:
+  22                 		.loc 1 108 0
+  97:beacon.c      ****     uint8 advData[MAX_ADVERT_PACKET_SIZE];
+  98:beacon.c      ****     uint16 offset = 0;
+  99:beacon.c      ****     uint8 filler;
+ 100:beacon.c      ****     uint16 advInterval;
+ 101:beacon.c      ****     uint8 advPayloadSize;
+ 102:beacon.c      ****     ls_addr_type addressType = ls_addr_type_public;     /* use public address */
+ 103:beacon.c      **** 
+ 104:beacon.c      ****     /* initialise values from User CsKeys */
+ 105:beacon.c      **** 
+ 106:beacon.c      ****     /* read User key 0 for the payload filler */
+ 107:beacon.c      ****     filler = (uint8)(CSReadUserKey(0) & 0x00FF);
+  23                 		AL,#0x0000
+  24 0001 00 14       		bsr	CSReadUserKey
+  25 0002 00 00 00 00 		and	AL,#0x00ff
+  25      00 9C 
+  26 0005 01 00 FF C4 		st	AL,@(0x002b,Y)
+  27 0007 2B 27       	.LVL0:
+  28                 		.loc 1 111 0
+ 108:beacon.c      **** 
+ 109:beacon.c      ****     /* read User key 1 for the payload size */
+ 110:beacon.c      ****     advPayloadSize = (uint8)(CSReadUserKey(1) & 0x00FF);
+  29                 	,#0x0001
+  30 0008 01 14       		bsr	CSReadUserKey
+  31 0009 00 00 00 00 		and	AL,#0x00ff
+  31      00 9C 
+  32 000c 01 00 FF C4 		st	AL,@(0x0029,Y)
+  33 000e 29 27       	.LVL1:
+  34                 		.loc 1 114 0
+ 111:beacon.c      **** 
+ 112:beacon.c      ****     /* range check */
+ 113:beacon.c      ****     if((advPayloadSize < 1) || (advPayloadSize > MAX_ADVERT_PAYLOAD_SIZE))
+  35                 	L,#0xffff
+  36 000f FF 34       		cmp	AL,#0x0017
+  37 0010 17 84       		bcz	.L2
+  38 0011 00 00 00 00 		ld	AH,#0x0018
+  38      00 2C 
+  39 0014 18 10       		st	AH,@(0x0029,Y)
+  40 0015 29 23       	.LVL2:
+  41                 	.L2:
+  42                 		.loc 1 121 0
+ 114:beacon.c      ****     {
+ 115:beacon.c      ****         /* revert to default payload size */
+ 116:beacon.c      ****         advPayloadSize = DEFAULT_ADVERT_PAYLOAD_SIZE;
+ 117:beacon.c      ****     }
+ 118:beacon.c      **** 
+ 119:beacon.c      ****     /* read User key 2 for the advertising interval */
+ 120:beacon.c      ****     advInterval = CSReadUserKey(2);
+  43                 	0x0002
+  44 0016 02 14       		bsr	CSReadUserKey
+  45 0017 00 00 00 00 		st	AL,@(0x002a,Y)
+  45      00 9C 
+  46 001a 2A 27       	.LVL3:
+  47                 		.loc 1 124 0
+ 121:beacon.c      **** 
+ 122:beacon.c      ****     /* range check */
+ 123:beacon.c      ****     if((advInterval < MIN_ADVERTISING_INTERVAL) ||
+  48                 	AL,#0xff9c
+  49 001b 9C 34       		cmp	AL,#0x279c
+  50 001c 28 00 9C 84 		bcz	.L3
+  51 001e 00 00 00 00 		ld	AL,#0x03e8
+  51      00 2C 
+  52 0021 04 00 E8 14 		st	AL,@(0x002a,Y)
+  53 0023 2A 27       	.LVL4:
+  54                 	.L3:
+  55                 		.loc 1 132 0
+ 124:beacon.c      ****        (advInterval > MAX_ADVERTISING_INTERVAL))
+ 125:beacon.c      ****     {
+ 126:beacon.c      ****         /* revert to default advertising interval */
+ 127:beacon.c      ****         advInterval = DEFAULT_ADVERTISING_INTERVAL;
+ 128:beacon.c      ****     }
+ 129:beacon.c      **** 
+ 130:beacon.c      ****     /* read address type from User key 3 */
+ 131:beacon.c      ****     if(CSReadUserKey(3))
+  56                 	0x0003
+  57 0024 03 14       		bsr	CSReadUserKey
+  58 0025 00 00 00 00 		tst	@$XAP_AL
+  58      00 9C 
+  59 0028 00 00 00 99 		bne	.L14
+  60 002a 00 00 00 00 		ld	AH,#0x0000
+  60      00 F0 
+  61 002d 00 10       		bra	.L15
+  62 002e 00 00 00 00 	.LVL5:
+  62      00 E0 
+  63                 	.L14:
+  64                 	.LBB5:
+  65                 		.loc 1 56 0
+  56:beacon.c      ****         uint32 now = TimeGet32();
+  66                 	et32
+  67 0031 00 00 00 00 		st	AL,@(0x0027,Y)
+  67      00 9C 
+  68 0034 27 27       	.LVL6:
+  69                 		st	AH,@(0x0026,Y)
+  70 0035 26 23       	.LVL7:
+  71                 		.loc 1 58 0
+  58:beacon.c      ****         uint32 rnd = Random16();
+  72                 	andom16
+  73 0036 00 00 00 00 		st	AL,@(-1,Y)
+  73      00 9C 
+  74 0039 FF 27       	.LBB6:
+  75                 	.LBB7:
+  76                 		.loc 1 59 0
+  59:beacon.c      ****         addr.uap = 0xff & (rnd ^ now);
+  77                 	L,@(0x0027,Y)
+  78 003a 27 17       		xor	AL,@(-1,Y)
+  79 003b FF D7       		and	AL,#0x00ff
+  80 003c 01 00 FF C4 		st	AL,@(0x0005,Y)
+  81 003e 05 27       		.loc 1 61 0
+  61:beacon.c      ****         if ( 0 == addr.uap || 0xff == addr.uap ) continue;
+  82                 	.L14
+  83 003f 00 00 00 00 		cmp	AL,#0x00ff
+  83      00 F4 
+  84 0042 01 00 FF 84 		beq	.L14
+  85 0044 00 00 00 00 		.loc 1 62 0
+  85      00 F4 
+  62:beacon.c      ****         addr.lap = 0xffffff & ((now >> 8) ^ (73 * rnd));
+  86                 	AL,@(-1,Y)
+  87 0047 FF 17       		umult	#0x0049
+  88 0048 00 09 49 90 		st	AL,@0xfff9
+  89 004a F9 25       		st	AH,@0xfff8
+  90 004b F8 21       		ld	AL,@(0x0027,Y)
+  91 004c 27 17       		ld	AH,@(0x0026,Y)
+  92 004d 26 13       		lsr	#0x0008
+  93 004e 00 09 08 A4 		st	AL,@0xfffb
+  94 0050 FB 25       		st	AH,@0xfffa
+  95 0051 FA 21       		ld	AL,@0xfff9
+  96 0052 F9 15       		ld	AH,@0xfff8
+  97 0053 F8 11       		xor	AL,@0xfffb
+  98 0054 FB D5       		xor	AH,@0xfffa
+  99 0055 FA D1       		ld	X,@$XAP_AL
+ 100 0056 00 00 00 19 		and	AH,#0x00ff
+ 101 0058 01 00 FF C0 		st	AH,@(0x0003,Y)
+ 102 005a 03 23       		st	AL,@(0x0004,Y)
+ 103 005b 04 27       		.loc 1 63 0
+  63:beacon.c      ****         if ( 0 == addr.lap || 0xffffff == addr.lap ) continue;
+ 104                 	r	AL,@$XAP_UXL
+ 105 005c 00 00 00 15 		beq	.L14
+ 106 005e 00 00 00 B5 		cmp	AH,#0x00ff
+ 107 0060 00 00 00 00 		bne	.L9
+ 107      00 F4 
+ 108 0063 01 00 FF 80 		cmp	X,#0xffff
+ 109 0065 00 00 00 00 		beq	.L14
+ 109      00 F0 
+ 110 0068 FF 88       	.L9:
+ 111 0069 00 00 00 00 		.loc 1 64 0
+ 111      00 F4 
+ 112                 		ld	AL,@(-1,Y)
+  64:beacon.c      ****         addr.nap = 0x3fff & rnd;
+ 113                 	0x3fff
+ 114 006c FF 17       		st	AL,@(0x0006,Y)
+ 115 006d 40 00 FF C4 		.loc 1 65 0
+ 116 006f 06 27       		beq	.L14
+  65:beacon.c      ****         if ( 0 == addr.nap || 0x3fff == addr.nap ) continue;
+ 117                 		AL,#0x3fff
+ 118 0070 00 00 00 00 		beq	.L14
+ 118      00 F4 
+ 119 0073 40 00 FF 84 	.LBE7:
+ 120 0075 00 00 00 00 		.loc 1 72 0
+ 120      00 F4 
+ 121                 		ld	AL,@$XAP_UY
+  72:beacon.c      ****     GapSetRandomAddress(&addr);
+ 122                 	AL,#0x0003
+ 123 0078 00 00 00 15 		bsr	GapSetRandomAddress
+ 124 007a 03 34       		ld	AH,#0x0001
+ 125 007b 00 00 00 00 	.L15:
+ 125      00 9C 
+ 126 007e 01 10       		st	AH,@(0x0028,Y)
+ 127                 	.LVL8:
+ 128 007f 28 23       	.LBE6:
+ 129                 	.LBE5:
+ 130                 		.loc 1 142 0
+ 131                 		ld	AL,#0x0001
+ 132:beacon.c      ****     {
+ 133:beacon.c      ****         /* use random address type */
+ 134:beacon.c      ****         addressType = ls_addr_type_random;
+ 135:beacon.c      **** 
+ 136:beacon.c      ****         /* generate and set the random address */
+ 137:beacon.c      ****         appSetRandomAddress();
+ 138:beacon.c      ****     }
+ 139:beacon.c      **** 
+ 140:beacon.c      ****     /* set the GAP Broadcaster role */
+ 141:beacon.c      ****     GapSetMode(gap_role_peripheral,
+ 132                 	,Y)
+ 133 0080 01 14       		st	AL,@(0x0001,Y)
+ 134 0081 00 27       		ld	AH,#0x0000
+ 135 0082 01 27       		st	AH,@(0x0002,Y)
+ 136 0083 00 10       		ld	AL,#0x0003
+ 137 0084 02 23       		ld	AH,#0x0003
+ 138 0085 03 14       		bsr	GapSetMode
+ 139 0086 03 10       		.loc 1 149 0
+ 140 0087 00 00 00 00 		ld	AL,#0x0000
+ 140      00 9C 
+ 142:beacon.c      ****                gap_mode_discover_general,
+ 143:beacon.c      ****                gap_mode_connect_no,
+ 144:beacon.c      ****                gap_mode_bond_no,
+ 145:beacon.c      ****                gap_mode_security_none);
+ 146:beacon.c      **** 
+ 147:beacon.c      ****     /* clear the existing advertisement data, if any */
+ 148:beacon.c      ****     LsStoreAdvScanData(0, NULL, ad_src_advertise);
+ 141                 	0,Y)
+ 142 008a 00 14       		ld	AH,#0x0000
+ 143 008b 00 27       		bsr	LsStoreAdvScanData
+ 144 008c 00 10       		.loc 1 152 0
+ 145 008d 00 00 00 00 		ld	AL,@(0x002a,Y)
+ 145      00 9C 
+ 149:beacon.c      **** 
+ 150:beacon.c      ****     /* set the advertisement interval, API accepts the value in microseconds */
+ 151:beacon.c      ****     GapSetAdvInterval(advInterval * MILLISECOND, advInterval * MILLISECOND);
+ 146                 	t	#0x03e8
+ 147 0090 2A 17       		st	AH,@0xfff8
+ 148 0091 00 09 04 00 		st	AL,@(0x0001,Y)
+ 148      E8 90 
+ 149 0094 F8 21       		st	AH,@(0,Y)
+ 150 0095 01 27       		ld	AH,@0xfff8
+ 151 0096 00 23       		bsr	GapSetAdvInterval
+ 152 0097 F8 11       		.loc 1 155 0
+ 153 0098 00 00 00 00 		ld	AH,#0x00ff
+ 153      00 9C 
+ 152:beacon.c      **** 
+ 153:beacon.c      ****     /* manufacturer-specific data */
+ 154:beacon.c      ****     advData[0] = AD_TYPE_MANUF;
+ 154                 	(0x0007,Y)
+ 155 009b 01 00 FF 10 		.loc 1 158 0
+ 156 009d 07 23       		ld	AL,#0x004c
+ 155:beacon.c      **** 
+ 156:beacon.c      ****     /* CSR company code, little endian */
+ 157:beacon.c      ****     advData[1] = 0x4C;
+ 157                 		AL,@(0x0008,Y)
+ 158 009e 4C 14       		.loc 1 159 0
+ 159 009f 08 27       		ld	AH,#0x0000
+ 158:beacon.c      ****     advData[2] = 0x00;
+ 160                 		AH,@(0x0009,Y)
+ 161 00a0 00 10       		.loc 1 160 0
+ 162 00a1 09 23       		ld	AL,#0x0002
+ 159:beacon.c      ****     advData[3] = 0x02;
+ 163                 		AL,@(0x000a,Y)
+ 164 00a2 02 14       		.loc 1 161 0
+ 165 00a3 0A 27       		ld	AH,#0x0015
+ 160:beacon.c      ****     advData[4] = 0x15;
+ 166                 		AH,@(0x000b,Y)
+ 167 00a4 15 10       		ld	X,@$XAP_UY
+ 168 00a5 0B 23       		add	X,#0x000c
+ 169 00a6 00 00 00 19 	.L7:
+ 170 00a8 0C 38       		.loc 1 166 0
+ 171                 		ld	AL,@(0x002b,Y)
+ 161:beacon.c      **** 
+ 162:beacon.c      ****     /* fill in the rest of the advertisement */
+ 163:beacon.c      ****     for(offset = 0; offset < 16; offset++)
+ 164:beacon.c      ****     {
+ 165:beacon.c      ****         advData[5 + offset] = filler;
+ 172                 	,@(0,X)
+ 173 00a9 2B 17       		add	X,#0x0001
+ 174 00aa 00 26       		.loc 1 164 0
+ 175 00ab 01 38       		ld	AL,@$XAP_UY
+ 164:beacon.c      ****     for(offset = 0; offset < 16; offset++)
+ 176                 		AL,#0x001c
+ 177 00ac 00 00 00 15 		cmp	X,@$XAP_AL
+ 178 00ae 1C 34       		bne	.L7
+ 179 00af 00 00 00 89 		.loc 1 168 0
+ 180 00b1 00 00 00 00 		ld	AH,#0x00bb
+ 180      00 F0 
+ 166:beacon.c      ****     }
+ 167:beacon.c      ****     for (; offset<18; offset++) advData[5+offset]=0xBB;
+ 181                 	H,@(0x001c,Y)
+ 182 00b4 01 00 BB 10 		st	AH,@(0x001d,Y)
+ 183 00b6 1C 23       		.loc 1 169 0
+ 184 00b7 1D 23       		ld	AL,#0x00cc
+ 168:beacon.c      ****     for (; offset<20; offset++) advData[5+offset]=0xCC;
+ 185                 	AL,@(0x001e,Y)
+ 186 00b8 01 00 CC 14 		st	AL,@(0x001f,Y)
+ 187 00ba 1E 27       		.loc 1 170 0
+ 188 00bb 1F 27       		add	AH,#0xfff8
+ 169:beacon.c      ****     advData[5+offset]=0xB3;     //hacky TX power
+ 189                 	AH,@(0x0020,Y)
+ 190 00bc F8 30       		.loc 1 172 0
+ 191 00bd 20 23       		ld	AL,@(0x0029,Y)
+ 170:beacon.c      ****     /* store the advertisement data */
+ 171:beacon.c      ****     LsStoreAdvScanData(advPayloadSize + 3, advData, ad_src_advertise);
+ 192                 	d	AL,#0x0003
+ 193 00be 29 17       		st	AL,@(0x0029,Y)
+ 194 00bf 03 34       	.LVL9:
+ 195 00c0 29 27       		ld	AH,#0x0000
+ 196                 		st	AH,@(0,Y)
+ 197 00c1 00 10       		ld	AH,@$XAP_UY
+ 198 00c2 00 23       		add	AH,#0x0007
+ 199 00c3 00 00 00 11 		bsr	LsStoreAdvScanData
+ 200 00c5 07 30       		.loc 1 175 0
+ 201 00c6 00 00 00 00 		ld	AL,@(0x0028,Y)
+ 201      00 9C 
+ 172:beacon.c      **** 
+ 173:beacon.c      ****     /* Start broadcasting */
+ 174:beacon.c      ****     LsStartStopAdvertise(TRUE, whitelist_disabled, addressType);
+ 202                 	,Y)
+ 203 00c9 28 17       		ld	AL,#0x0001
+ 204 00ca 00 27       		ld	AH,#0x0000
+ 205 00cb 01 14       		bsr	LsStartStopAdvertise
+ 206 00cc 00 10       		.loc 1 176 0
+ 207 00cd 00 00 00 00 		leave	#0x002d
+ 207      00 9C 
+ 175:beacon.c      **** }
+ 208                 	
+ 209 00d0 2D 0F       		.size	startBeaconAdvertising, .-startBeaconAdvertising
+ 210                 		.global	__size_of_startBeaconAdvertising
+ 211                 		.equ	__size_of_startBeaconAdvertising,. - startBeaconAdvertising
+ 212                 		.section	.debug_frame,"",@progbits
+ 213                 	.Lframe0:
+ 214                 		.4byte	.LECIE0-.LSCIE0
+ 215                 	.LSCIE0:
+ 216 0000 00 00 00 00 		.4byte	0xffffffff
+ 217                 		.1byte	0x1
+ 218 0002 FF FF FF FF 		.ascii "\000"
+ 219 0004 01          		.1byte	0x1
+ 220 0004 00          		.1byte	0x7f
+ 221 0005 01          		.1byte	0x3
+ 222 0005 7F          		.1byte	0xc
+ 223 0006 03          		.1byte	0x5
+ 224 0006 0C          		.1byte	0x0
+ 225 0007 05          		.p2align	2
+ 226 0007 00          	.LECIE0:
+ 227                 	.LSFDE0:
+ 228                 		.4byte	.LEFDE0-.LASFDE0
+ 229                 	.LASFDE0:
+ 230 0008 00 00 00 00 		.4byte	.Lframe0
+ 231                 		.4byte	.LFB3
+ 232 000a 00 00 00 00 		.4byte	.LFE3-.LFB3
+ 233 000c 00 00 00 00 		.1byte	0x4
+ 234 000e 00 00 00 00 		.4byte	.LCFI0-.LFB3
+ 235 0010 41          		.1byte	0xe
+ 236                 		.1byte	0x2d
+ 237 0010 0E          		.1byte	0x83
+ 238 0011 2D          		.1byte	0x1
+ 239 0011 83          		.p2align	2
+ 240 0012 01          	.LEFDE0:
+ 241 0012 00 00 00    		.text
+ 242                 	.Letext0:
+ 243                 		.section	.debug_loc,"",@progbits
+ 244                 	.Ldebug_loc0:
+ 245                 	.LLST0:
+ 246                 		.4byte	.LFB3
+ 247                 		.4byte	.LCFI0
+ 248 0000 00 00 00 00 		.2byte	0x1
+ 249 0002 00 00 00 00 		.1byte	0x55
+ 250 0004 00 01       		.4byte	.LCFI0
+ 251 0005 55          		.4byte	.LFE3
+ 252 0005 00 00 00 00 		.2byte	0x2
+ 253 0007 00 00 00 00 		.1byte	0x75
+ 254 0009 00 02       		.1byte	0x2d
+ 255 000a 75          		.4byte	0x0
+ 256 000b 2D          		.4byte	0x0
+ 257 000b 00 00 00 00 		.file 2 "C:/CSR_uEnergy_SDK-2.5.0.20/tools/include/CSR101x_A05/types.h"
+ 258 000d 00 00 00 00 		.file 3 "C:/CSR_uEnergy_SDK-2.5.0.20/tools/include/CSR101x_A05/bluetooth.h"
+ 259                 		.file 4 "C:/CSR_uEnergy_SDK-2.5.0.20/tools/include/CSR101x_A05/ls_types.h"
+ 260                 		.file 5 "C:/CSR_uEnergy_SDK-2.5.0.20/tools/include/CSR101x_A05/gap_types.h"
+ 261                 		.section	.debug_info
+ 262                 		.4byte	0x388
+ 263                 		.2byte	0x2
+ 264 0000 00 00 03 88 		.4byte	.Ldebug_abbrev0
+ 265 0002 00 02       		.1byte	0x4
+ 266 0003 00 00 00 00 		.1byte	0x1
+ 267 0005 04          		.4byte	.LASF85
+ 268 0005 01          		.1byte	0x1
+ 269 0006 00 00 00 00 		.4byte	.LASF86
+ 270 0008 01          		.4byte	.LASF87
+ 271 0008 00 00 00 00 		.4byte	0x0
+ 272 000a 00 00 00 00 		.4byte	0x0
+ 273 000c 00 00 00 00 		.4byte	.Ldebug_ranges0+0x0
+ 274 000e 00 00 00 00 		.4byte	.Ldebug_line0
+ 275 0010 00 00 00 00 		.1byte	0x2
+ 276 0012 00 00 00 00 		.4byte	.LASF0
+ 277 0014 02          		.1byte	0x2
+ 278 0015 00 00 00 00 		.1byte	0x1e
+ 279 0017 02          		.4byte	0x34
+ 280 0017 1E          		.1byte	0x3
+ 281 0018 00 00 00 34 		.1byte	0x2
+ 282 001a 03          		.1byte	0x8
+ 283 001a 02          		.4byte	.LASF2
+ 284 001b 08          		.1byte	0x2
+ 285 001b 00 00 00 00 		.4byte	.LASF1
+ 286 001d 02          		.1byte	0x2
+ 287 001e 00 00 00 00 		.1byte	0x1f
+ 288 0020 02          		.4byte	0x46
+ 289 0020 1F          		.1byte	0x3
+ 290 0021 00 00 00 46 		.1byte	0x2
+ 291 0023 03          		.1byte	0x7
+ 292 0023 02          		.4byte	.LASF3
+ 293 0024 07          		.1byte	0x2
+ 294 0024 00 00 00 00 		.4byte	.LASF4
+ 295 0026 02          		.1byte	0x2
+ 296 0027 00 00 00 00 		.1byte	0x20
+ 297 0029 02          		.4byte	0x58
+ 298 0029 20          		.1byte	0x3
+ 299 002a 00 00 00 58 		.1byte	0x4
+ 300 002c 03          		.1byte	0x7
+ 301 002c 04          		.4byte	.LASF5
+ 302 002d 07          		.1byte	0x2
+ 303 002d 00 00 00 00 		.4byte	.LASF6
+ 304 002f 02          		.1byte	0x2
+ 305 0030 00 00 00 00 		.1byte	0x21
+ 306 0032 02          		.4byte	0x4d
+ 307 0032 21          		.1byte	0x3
+ 308 0033 00 00 00 4D 		.1byte	0x2
+ 309 0035 03          		.1byte	0x6
+ 310 0035 02          		.4byte	.LASF7
+ 311 0036 06          		.1byte	0x3
+ 312 0036 00 00 00 00 		.1byte	0x2
+ 313 0038 03          		.1byte	0x5
+ 314 0039 02          		.4byte	.LASF8
+ 315 0039 05          		.1byte	0x3
+ 316 003a 00 00 00 00 		.1byte	0x4
+ 317 003c 03          		.1byte	0x5
+ 318 003c 04          		.4byte	.LASF9
+ 319 003d 05          		.1byte	0x3
+ 320 003d 00 00 00 00 		.1byte	0x2
+ 321 003f 03          		.1byte	0x7
+ 322 0040 02          		.4byte	.LASF10
+ 323 0040 07          		.1byte	0x4
+ 324 0041 00 00 00 00 		.1byte	0x8
+ 325 0043 04          		.1byte	0x3
+ 326 0043 08          		.1byte	0x33
+ 327 0044 03          		.4byte	0xb9
+ 328 0044 33          		.1byte	0x5
+ 329 0045 00 00 00 B9 		.ascii "lap\000"
+ 330 0047 05          		.1byte	0x3
+ 331 0047 6C 61 70 00 		.1byte	0x34
+ 332 0049 03          		.4byte	0x5f
+ 333 004a 34          		.1byte	0x2
+ 334 004a 00 00 00 5F 		.1byte	0x23
+ 335 004c 02          		.1byte	0x0
+ 336 004d 23          		.1byte	0x5
+ 337 004d 00          		.ascii "uap\000"
+ 338 004e 05          		.1byte	0x3
+ 339 004e 75 61 70 00 		.1byte	0x35
+ 340 0050 03          		.4byte	0x29
+ 341 0051 35          		.1byte	0x2
+ 342 0051 00 00 00 29 		.1byte	0x23
+ 343 0053 02          		.1byte	0x2
+ 344 0054 23          		.1byte	0x5
+ 345 0054 02          		.ascii "nap\000"
+ 346 0055 05          		.1byte	0x3
+ 347 0055 6E 61 70 00 		.1byte	0x36
+ 348 0057 03          		.4byte	0x3b
+ 349 0058 36          		.1byte	0x2
+ 350 0058 00 00 00 3B 		.1byte	0x23
+ 351 005a 02          		.1byte	0x3
+ 352 005b 23          		.1byte	0x0
+ 353 005b 03          		.1byte	0x2
+ 354 005c 00          		.4byte	.LASF11
+ 355 005c 02          		.1byte	0x3
+ 356 005d 00 00 00 00 		.1byte	0x37
+ 357 005f 03          		.4byte	0x86
+ 358 005f 37          		.1byte	0x6
+ 359 0060 00 00 00 86 		.1byte	0x2
+ 360 0062 06          		.1byte	0x7
+ 361 0062 02          		.1byte	0x7
+ 362 0063 07          		.4byte	0x29
+ 363 0063 07          		.4byte	0xd7
+ 364 0064 00 00 00 29 		.1byte	0x8
+ 365 0066 00 00 00 D7 		.4byte	0xc4
+ 366 0068 08          		.1byte	0x1e
+ 367 0068 00 00 00 C4 		.1byte	0x0
+ 368 006a 1E          		.1byte	0x9
+ 369 006b 00          		.1byte	0x2
+ 370 006b 09          		.1byte	0x4
+ 371 006c 02          		.1byte	0x21
+ 372 006c 04          		.4byte	0xf2
+ 373 006d 21          		.1byte	0xa
+ 374 006d 00 00 00 F2 		.4byte	.LASF12
+ 375 006f 0A          		.1byte	0x0
+ 376 0070 00 00 00 00 		.1byte	0xa
+ 377 0072 00          		.4byte	.LASF13
+ 378 0072 0A          		.1byte	0x1
+ 379 0073 00 00 00 00 		.1byte	0xa
+ 380 0075 01          		.4byte	.LASF14
+ 381 0075 0A          		.1byte	0x7f
+ 382 0076 00 00 00 00 		.1byte	0x0
+ 383 0078 7F          		.1byte	0x2
+ 384 0078 00          		.4byte	.LASF15
+ 385 0079 02          		.1byte	0x4
+ 386 0079 00 00 00 00 		.1byte	0x26
+ 387 007b 04          		.4byte	0xd7
+ 388 007c 26          		.1byte	0x9
+ 389 007c 00 00 00 D7 		.1byte	0x2
+ 390 007e 09          		.1byte	0x4
+ 391 007f 02          		.1byte	0x33
+ 392 007f 04          		.4byte	0x13c
+ 393 0080 33          		.1byte	0xa
+ 394 0080 00 00 01 3C 		.4byte	.LASF16
+ 395 0082 0A          		.1byte	0x0
+ 396 0083 00 00 00 00 		.1byte	0xa
+ 397 0085 00          		.4byte	.LASF17
+ 398 0085 0A          		.1byte	0x1
+ 399 0086 00 00 00 00 		.1byte	0xa
+ 400 0088 01          		.4byte	.LASF18
+ 401 0088 0A          		.1byte	0x0
+ 402 0089 00 00 00 00 		.1byte	0xa
+ 403 008b 00          		.4byte	.LASF19
+ 404 008b 0A          		.1byte	0x0
+ 405 008c 00 00 00 00 		.1byte	0xa
+ 406 008e 00          		.4byte	.LASF20
+ 407 008e 0A          		.1byte	0x1
+ 408 008f 00 00 00 00 		.1byte	0xa
+ 409 0091 01          		.4byte	.LASF21
+ 410 0091 0A          		.1byte	0x0
+ 411 0092 00 00 00 00 		.1byte	0xa
+ 412 0094 00          		.4byte	.LASF22
+ 413 0094 0A          		.1byte	0x1
+ 414 0095 00 00 00 00 		.1byte	0xa
+ 415 0097 01          		.4byte	.LASF23
+ 416 0097 0A          		.1byte	0x0
+ 417 0098 00 00 00 00 		.1byte	0xa
+ 418 009a 00          		.4byte	.LASF24
+ 419 009a 0A          		.1byte	0x1
+ 420 009b 00 00 00 00 		.1byte	0x0
+ 421 009d 01          		.1byte	0x9
+ 422 009d 00          		.1byte	0x2
+ 423 009e 09          		.1byte	0x4
+ 424 009e 02          		.1byte	0x5c
+ 425 009f 04          		.4byte	0x206
+ 426 009f 5C          		.1byte	0xa
+ 427 00a0 00 00 02 06 		.4byte	.LASF25
+ 428 00a2 0A          		.1byte	0x1
+ 429 00a2 00 00 00 00 		.1byte	0xa
+ 430 00a4 01          		.4byte	.LASF26
+ 431 00a5 0A          		.1byte	0x2
+ 432 00a5 00 00 00 00 		.1byte	0xa
+ 433 00a7 02          		.4byte	.LASF27
+ 434 00a8 0A          		.1byte	0x3
+ 435 00a8 00 00 00 00 		.1byte	0xa
+ 436 00aa 03          		.4byte	.LASF28
+ 437 00ab 0A          		.1byte	0x4
+ 438 00ab 00 00 00 00 		.1byte	0xa
+ 439 00ad 04          		.4byte	.LASF29
+ 440 00ae 0A          		.1byte	0x5
+ 441 00ae 00 00 00 00 		.1byte	0xa
+ 442 00b0 05          		.4byte	.LASF30
+ 443 00b1 0A          		.1byte	0x6
+ 444 00b1 00 00 00 00 		.1byte	0xa
+ 445 00b3 06          		.4byte	.LASF31
+ 446 00b4 0A          		.1byte	0x7
+ 447 00b4 00 00 00 00 		.1byte	0xa
+ 448 00b6 07          		.4byte	.LASF32
+ 449 00b7 0A          		.1byte	0x8
+ 450 00b7 00 00 00 00 		.1byte	0xa
+ 451 00b9 08          		.4byte	.LASF33
+ 452 00ba 0A          		.1byte	0x9
+ 453 00ba 00 00 00 00 		.1byte	0xa
+ 454 00bc 09          		.4byte	.LASF34
+ 455 00bd 0A          		.1byte	0xa
+ 456 00bd 00 00 00 00 		.1byte	0xa
+ 457 00bf 0A          		.4byte	.LASF35
+ 458 00c0 0A          		.1byte	0xd
+ 459 00c0 00 00 00 00 		.1byte	0xa
+ 460 00c2 0D          		.4byte	.LASF36
+ 461 00c3 0A          		.1byte	0xe
+ 462 00c3 00 00 00 00 		.1byte	0xa
+ 463 00c5 0E          		.4byte	.LASF37
+ 464 00c6 0A          		.1byte	0xf
+ 465 00c6 00 00 00 00 		.1byte	0xa
+ 466 00c8 0F          		.4byte	.LASF38
+ 467 00c9 0A          		.1byte	0x10
+ 468 00c9 00 00 00 00 		.1byte	0xa
+ 469 00cb 10          		.4byte	.LASF39
+ 470 00cc 0A          		.1byte	0x11
+ 471 00cc 00 00 00 00 		.1byte	0xa
+ 472 00ce 11          		.4byte	.LASF40
+ 473 00cf 0A          		.1byte	0x12
+ 474 00cf 00 00 00 00 		.1byte	0xa
+ 475 00d1 12          		.4byte	.LASF41
+ 476 00d2 0A          		.1byte	0x13
+ 477 00d2 00 00 00 00 		.1byte	0xa
+ 478 00d4 13          		.4byte	.LASF42
+ 479 00d5 0A          		.1byte	0x14
+ 480 00d5 00 00 00 00 		.1byte	0xa
+ 481 00d7 14          		.4byte	.LASF43
+ 482 00d8 0A          		.1byte	0x15
+ 483 00d8 00 00 00 00 		.1byte	0xa
+ 484 00da 15          		.4byte	.LASF44
+ 485 00db 0A          		.1byte	0x16
+ 486 00db 00 00 00 00 		.1byte	0xa
+ 487 00dd 16          		.4byte	.LASF45
+ 488 00de 0A          		.1byte	0x17
+ 489 00de 00 00 00 00 		.1byte	0xa
+ 490 00e0 17          		.4byte	.LASF46
+ 491 00e1 0A          		.1byte	0x18
+ 492 00e1 00 00 00 00 		.1byte	0xa
+ 493 00e3 18          		.4byte	.LASF47
+ 494 00e4 0A          		.1byte	0x19
+ 495 00e4 00 00 00 00 		.1byte	0xa
+ 496 00e6 19          		.4byte	.LASF48
+ 497 00e7 0A          		.1byte	0x1a
+ 498 00e7 00 00 00 00 		.1byte	0xa
+ 499 00e9 1A          		.4byte	.LASF49
+ 500 00ea 0A          		.1byte	0x1b
+ 501 00ea 00 00 00 00 		.1byte	0xa
+ 502 00ec 1B          		.4byte	.LASF50
+ 503 00ed 0A          		.1byte	0x1c
+ 504 00ed 00 00 00 00 		.1byte	0xa
+ 505 00ef 1C          		.4byte	.LASF51
+ 506 00f0 0A          		.1byte	0x1d
+ 507 00f0 00 00 00 00 		.1byte	0xa
+ 508 00f2 1D          		.4byte	.LASF52
+ 509 00f3 0A          		.1byte	0x1e
+ 510 00f3 00 00 00 00 		.1byte	0xa
+ 511 00f5 1E          		.4byte	.LASF53
+ 512 00f6 0A          		.1byte	0x1f
+ 513 00f6 00 00 00 00 		.1byte	0xa
+ 514 00f8 1F          		.4byte	.LASF54
+ 515 00f9 0A          		.1byte	0x20
+ 516 00f9 00 00 00 00 		.1byte	0xa
+ 517 00fb 20          		.4byte	.LASF55
+ 518 00fc 0A          		.1byte	0x21
+ 519 00fc 00 00 00 00 		.1byte	0xa
+ 520 00fe 21          		.4byte	.LASF56
+ 521 00ff 0A          		.1byte	0xff,0x1
+ 522 00ff 00 00 00 00 		.1byte	0x0
+ 523 0101 FF 01       		.1byte	0x9
+ 524 0102 00          		.1byte	0x2
+ 525 0103 09          		.1byte	0x4
+ 526 0103 02          		.1byte	0x8d
+ 527 0104 04          		.4byte	0x21b
+ 528 0104 8D          		.1byte	0xa
+ 529 0105 00 00 02 1B 		.4byte	.LASF57
+ 530 0107 0A          		.1byte	0x0
+ 531 0107 00 00 00 00 		.1byte	0xa
+ 532 0109 00          		.4byte	.LASF58
+ 533 010a 0A          		.1byte	0x1
+ 534 010a 00 00 00 00 		.1byte	0x0
+ 535 010c 01          		.1byte	0x9
+ 536 010d 00          		.1byte	0x2
+ 537 010d 09          		.1byte	0x5
+ 538 010e 02          		.1byte	0x20
+ 539 010e 05          		.4byte	0x242
+ 540 010f 20          		.1byte	0xa
+ 541 010f 00 00 02 42 		.4byte	.LASF59
+ 542 0111 0A          		.1byte	0x0
+ 543 0112 00 00 00 00 		.1byte	0xa
+ 544 0114 00          		.4byte	.LASF60
+ 545 0114 0A          		.1byte	0x1
+ 546 0115 00 00 00 00 		.1byte	0xa
+ 547 0117 01          		.4byte	.LASF61
+ 548 0117 0A          		.1byte	0x2
+ 549 0118 00 00 00 00 		.1byte	0xa
+ 550 011a 02          		.4byte	.LASF62
+ 551 011a 0A          		.1byte	0x3
+ 552 011b 00 00 00 00 		.1byte	0xa
+ 553 011d 03          		.4byte	.LASF63
+ 554 011d 0A          		.1byte	0x4
+ 555 011e 00 00 00 00 		.1byte	0x0
+ 556 0120 04          		.1byte	0x9
+ 557 0120 00          		.1byte	0x2
+ 558 0121 09          		.1byte	0x5
+ 559 0121 02          		.1byte	0x56
+ 560 0122 05          		.4byte	0x263
+ 561 0122 56          		.1byte	0xa
+ 562 0123 00 00 02 63 		.4byte	.LASF64
+ 563 0125 0A          		.1byte	0x0
+ 564 0125 00 00 00 00 		.1byte	0xa
+ 565 0127 00          		.4byte	.LASF65
+ 566 0128 0A          		.1byte	0x1
+ 567 0128 00 00 00 00 		.1byte	0xa
+ 568 012a 01          		.4byte	.LASF66
+ 569 012b 0A          		.1byte	0x2
+ 570 012b 00 00 00 00 		.1byte	0xa
+ 571 012d 02          		.4byte	.LASF67
+ 572 012e 0A          		.1byte	0x3
+ 573 012e 00 00 00 00 		.1byte	0x0
+ 574 0130 03          		.1byte	0x9
+ 575 0131 00          		.1byte	0x2
+ 576 0131 09          		.1byte	0x5
+ 577 0132 02          		.1byte	0x7b
+ 578 0132 05          		.4byte	0x284
+ 579 0133 7B          		.1byte	0xa
+ 580 0133 00 00 02 84 		.4byte	.LASF68
+ 581 0135 0A          		.1byte	0x0
+ 582 0136 00 00 00 00 		.1byte	0xa
+ 583 0138 00          		.4byte	.LASF69
+ 584 0138 0A          		.1byte	0x1
+ 585 0139 00 00 00 00 		.1byte	0xa
+ 586 013b 01          		.4byte	.LASF70
+ 587 013b 0A          		.1byte	0x2
+ 588 013c 00 00 00 00 		.1byte	0xa
+ 589 013e 02          		.4byte	.LASF71
+ 590 013e 0A          		.1byte	0x3
+ 591 013f 00 00 00 00 		.1byte	0x0
+ 592 0141 03          		.1byte	0x9
+ 593 0141 00          		.1byte	0x2
+ 594 0142 09          		.1byte	0x5
+ 595 0142 02          		.1byte	0xa8
+ 596 0143 05          		.4byte	0x29f
+ 597 0143 A8          		.1byte	0xa
+ 598 0144 00 00 02 9F 		.4byte	.LASF72
+ 599 0146 0A          		.1byte	0x0
+ 600 0146 00 00 00 00 		.1byte	0xa
+ 601 0148 00          		.4byte	.LASF73
+ 602 0149 0A          		.1byte	0x1
+ 603 0149 00 00 00 00 		.1byte	0xa
+ 604 014b 01          		.4byte	.LASF74
+ 605 014c 0A          		.1byte	0x2
+ 606 014c 00 00 00 00 		.1byte	0x0
+ 607 014e 02          		.1byte	0x9
+ 608 014f 00          		.1byte	0x2
+ 609 014f 09          		.1byte	0x5
+ 610 0150 02          		.1byte	0xc4
+ 611 0150 05          		.4byte	0x2ba
+ 612 0151 C4          		.1byte	0xa
+ 613 0151 00 00 02 BA 		.4byte	.LASF75
+ 614 0153 0A          		.1byte	0x0
+ 615 0154 00 00 00 00 		.1byte	0xa
+ 616 0156 00          		.4byte	.LASF76
+ 617 0156 0A          		.1byte	0x1
+ 618 0157 00 00 00 00 		.1byte	0xa
+ 619 0159 01          		.4byte	.LASF77
+ 620 0159 0A          		.1byte	0x2
+ 621 015a 00 00 00 00 		.1byte	0x0
+ 622 015c 02          		.1byte	0xb
+ 623 015c 00          		.4byte	.LASF88
+ 624 015d 0B          		.1byte	0x1
+ 625 015d 00 00 00 00 		.1byte	0x32
+ 626 015f 01          		.1byte	0x1
+ 627 0160 32          		.1byte	0x1
+ 628 0160 01          		.4byte	0x2eb
+ 629 0161 01          		.1byte	0xc
+ 630 0161 00 00 02 EB 		.4byte	.LASF78
+ 631 0163 0C          		.1byte	0x1
+ 632 0164 00 00 00 00 		.1byte	0x33
+ 633 0166 01          		.4byte	0xb9
+ 634 0166 33          		.1byte	0xd
+ 635 0167 00 00 00 B9 		.1byte	0xe
+ 636 0169 0D          		.ascii "now\000"
+ 637 0169 0E          		.1byte	0x1
+ 638 016a 6E 6F 77 00 		.1byte	0x38
+ 639 016c 01          		.4byte	0x4d
+ 640 016c 38          		.1byte	0xe
+ 641 016d 00 00 00 4D 		.ascii "rnd\000"
+ 642 016f 0E          		.1byte	0x1
+ 643 016f 72 6E 64 00 		.1byte	0x3a
+ 644 0171 01          		.4byte	0x4d
+ 645 0172 3A          		.1byte	0x0
+ 646 0172 00 00 00 4D 		.1byte	0x0
+ 647 0174 00          		.1byte	0xf
+ 648 0175 00          		.1byte	0x1
+ 649 0175 0F          		.4byte	.LASF89
+ 650 0176 01          		.1byte	0x1
+ 651 0176 00 00 00 00 		.1byte	0x61
+ 652 0178 01          		.1byte	0x1
+ 653 0179 61          		.4byte	.LFB3
+ 654 0179 01          		.4byte	.LFE3
+ 655 017a 00 00 00 00 		.4byte	.LLST0
+ 656 017c 00 00 00 00 		.1byte	0x10
+ 657 017e 00 00 00 00 		.4byte	.LASF80
+ 658 0180 10          		.1byte	0x1
+ 659 0180 00 00 00 00 		.1byte	0x62
+ 660 0182 01          		.4byte	0xc7
+ 661 0183 62          		.1byte	0x2
+ 662 0183 00 00 00 C7 		.1byte	0x76
+ 663 0185 02          		.1byte	0x7
+ 664 0186 76          		.1byte	0xc
+ 665 0186 07          		.4byte	.LASF79
+ 666 0187 0C          		.1byte	0x1
+ 667 0187 00 00 00 00 		.1byte	0x63
+ 668 0189 01          		.4byte	0x3b
+ 669 018a 63          		.1byte	0x10
+ 670 018a 00 00 00 3B 		.4byte	.LASF81
+ 671 018c 10          		.1byte	0x1
+ 672 018d 00 00 00 00 		.1byte	0x64
+ 673 018f 01          		.4byte	0x29
+ 674 018f 64          		.1byte	0x2
+ 675 0190 00 00 00 29 		.1byte	0x76
+ 676 0192 02          		.1byte	0x2b
+ 677 0192 76          		.1byte	0x10
+ 678 0193 2B          		.4byte	.LASF82
+ 679 0193 10          		.1byte	0x1
+ 680 0194 00 00 00 00 		.1byte	0x65
+ 681 0196 01          		.4byte	0x3b
+ 682 0196 65          		.1byte	0x2
+ 683 0197 00 00 00 3B 		.1byte	0x76
+ 684 0199 02          		.1byte	0x2a
+ 685 0199 76          		.1byte	0x10
+ 686 019a 2A          		.4byte	.LASF83
+ 687 019a 10          		.1byte	0x1
+ 688 019b 00 00 00 00 		.1byte	0x66
+ 689 019d 01          		.4byte	0x29
+ 690 019d 66          		.1byte	0x2
+ 691 019e 00 00 00 29 		.1byte	0x76
+ 692 01a0 02          		.1byte	0x29
+ 693 01a0 76          		.1byte	0x10
+ 694 01a1 29          		.4byte	.LASF84
+ 695 01a1 10          		.1byte	0x1
+ 696 01a2 00 00 00 00 		.1byte	0x67
+ 697 01a4 01          		.4byte	0xf2
+ 698 01a4 67          		.1byte	0x2
+ 699 01a5 00 00 00 F2 		.1byte	0x76
+ 700 01a7 02          		.1byte	0x28
+ 701 01a7 76          		.1byte	0x11
+ 702 01a8 28          		.4byte	0x2ba
+ 703 01a8 11          		.4byte	.LBB5
+ 704 01a9 00 00 02 BA 		.4byte	.LBE5
+ 705 01ab 00 00 00 00 		.1byte	0x1
+ 706 01ad 00 00 00 00 		.1byte	0x8a
+ 707 01af 01          		.1byte	0x12
+ 708 01af 8A          		.4byte	.LBB6
+ 709 01b0 12          		.4byte	.LBE6
+ 710 01b0 00 00 00 00 		.1byte	0x13
+ 711 01b2 00 00 00 00 		.4byte	0x2c7
+ 712 01b4 13          		.1byte	0x2
+ 713 01b5 00 00 02 C7 		.1byte	0x76
+ 714 01b7 02          		.1byte	0x3
+ 715 01b7 76          		.1byte	0x12
+ 716 01b8 03          		.4byte	.LBB7
+ 717 01b8 12          		.4byte	.LBE7
+ 718 01b9 00 00 00 00 		.1byte	0x13
+ 719 01bb 00 00 00 00 		.4byte	0x2d3
+ 720 01bd 13          		.1byte	0x2
+ 721 01bd 00 00 02 D3 		.1byte	0x76
+ 722 01bf 02          		.1byte	0x26
+ 723 01c0 76          		.1byte	0x14
+ 724 01c0 26          		.4byte	0x2de
+ 725 01c1 14          		.1byte	0x0
+ 726 01c1 00 00 02 DE 		.1byte	0x0
+ 727 01c3 00          		.1byte	0x0
+ 728 01c4 00          		.1byte	0x0
+ 729 01c4 00          		.1byte	0x0
+ 730 01c5 00          		.section	.debug_abbrev
+ 731 01c5 00          		.1byte	0x1
+ 732                 		.1byte	0x11
+ 733 0000 01          		.1byte	0x1
+ 734 0000 11          		.1byte	0x25
+ 735 0001 01          		.1byte	0xe
+ 736 0001 25          		.1byte	0x13
+ 737 0002 0E          		.1byte	0xb
+ 738 0002 13          		.1byte	0x3
+ 739 0003 0B          		.1byte	0xe
+ 740 0003 03          		.1byte	0x1b
+ 741 0004 0E          		.1byte	0xe
+ 742 0004 1B          		.1byte	0x11
+ 743 0005 0E          		.1byte	0x1
+ 744 0005 11          		.1byte	0x52
+ 745 0006 01          		.1byte	0x1
+ 746 0006 52          		.1byte	0x55
+ 747 0007 01          		.1byte	0x6
+ 748 0007 55          		.1byte	0x10
+ 749 0008 06          		.1byte	0x6
+ 750 0008 10          		.1byte	0x0
+ 751 0009 06          		.1byte	0x0
+ 752 0009 00          		.1byte	0x2
+ 753 000a 00          		.1byte	0x16
+ 754 000a 02          		.1byte	0x0
+ 755 000b 16          		.1byte	0x3
+ 756 000b 00          		.1byte	0xe
+ 757 000c 03          		.1byte	0x3a
+ 758 000c 0E          		.1byte	0xb
+ 759 000d 3A          		.1byte	0x3b
+ 760 000d 0B          		.1byte	0xb
+ 761 000e 3B          		.1byte	0x49
+ 762 000e 0B          		.1byte	0x13
+ 763 000f 49          		.1byte	0x0
+ 764 000f 13          		.1byte	0x0
+ 765 0010 00          		.1byte	0x3
+ 766 0010 00          		.1byte	0x24
+ 767 0011 03          		.1byte	0x0
+ 768 0011 24          		.1byte	0xb
+ 769 0012 00          		.1byte	0xb
+ 770 0012 0B          		.1byte	0x3e
+ 771 0013 0B          		.1byte	0xb
+ 772 0013 3E          		.1byte	0x3
+ 773 0014 0B          		.1byte	0xe
+ 774 0014 03          		.1byte	0x0
+ 775 0015 0E          		.1byte	0x0
+ 776 0015 00          		.1byte	0x4
+ 777 0016 00          		.1byte	0x13
+ 778 0016 04          		.1byte	0x1
+ 779 0017 13          		.1byte	0xb
+ 780 0017 01          		.1byte	0xb
+ 781 0018 0B          		.1byte	0x3a
+ 782 0018 0B          		.1byte	0xb
+ 783 0019 3A          		.1byte	0x3b
+ 784 0019 0B          		.1byte	0xb
+ 785 001a 3B          		.1byte	0x1
+ 786 001a 0B          		.1byte	0x13
+ 787 001b 01          		.1byte	0x0
+ 788 001b 13          		.1byte	0x0
+ 789 001c 00          		.1byte	0x5
+ 790 001c 00          		.1byte	0xd
+ 791 001d 05          		.1byte	0x0
+ 792 001d 0D          		.1byte	0x3
+ 793 001e 00          		.1byte	0x8
+ 794 001e 03          		.1byte	0x3a
+ 795 001f 08          		.1byte	0xb
+ 796 001f 3A          		.1byte	0x3b
+ 797 0020 0B          		.1byte	0xb
+ 798 0020 3B          		.1byte	0x49
+ 799 0021 0B          		.1byte	0x13
+ 800 0021 49          		.1byte	0x38
+ 801 0022 13          		.1byte	0xa
+ 802 0022 38          		.1byte	0x0
+ 803 0023 0A          		.1byte	0x0
+ 804 0023 00          		.1byte	0x6
+ 805 0024 00          		.1byte	0x24
+ 806 0024 06          		.1byte	0x0
+ 807 0025 24          		.1byte	0xb
+ 808 0025 00          		.1byte	0xb
+ 809 0026 0B          		.1byte	0x3e
+ 810 0026 0B          		.1byte	0xb
+ 811 0027 3E          		.1byte	0x0
+ 812 0027 0B          		.1byte	0x0
+ 813 0028 00          		.1byte	0x7
+ 814 0028 00          		.1byte	0x1
+ 815 0029 07          		.1byte	0x1
+ 816 0029 01          		.1byte	0x49
+ 817 002a 01          		.1byte	0x13
+ 818 002a 49          		.1byte	0x1
+ 819 002b 13          		.1byte	0x13
+ 820 002b 01          		.1byte	0x0
+ 821 002c 13          		.1byte	0x0
+ 822 002c 00          		.1byte	0x8
+ 823 002d 00          		.1byte	0x21
+ 824 002d 08          		.1byte	0x0
+ 825 002e 21          		.1byte	0x49
+ 826 002e 00          		.1byte	0x13
+ 827 002f 49          		.1byte	0x2f
+ 828 002f 13          		.1byte	0xb
+ 829 0030 2F          		.1byte	0x0
+ 830 0030 0B          		.1byte	0x0
+ 831 0031 00          		.1byte	0x9
+ 832 0031 00          		.1byte	0x4
+ 833 0032 09          		.1byte	0x1
+ 834 0032 04          		.1byte	0xb
+ 835 0033 01          		.1byte	0xb
+ 836 0033 0B          		.1byte	0x3a
+ 837 0034 0B          		.1byte	0xb
+ 838 0034 3A          		.1byte	0x3b
+ 839 0035 0B          		.1byte	0xb
+ 840 0035 3B          		.1byte	0x1
+ 841 0036 0B          		.1byte	0x13
+ 842 0036 01          		.1byte	0x0
+ 843 0037 13          		.1byte	0x0
+ 844 0037 00          		.1byte	0xa
+ 845 0038 00          		.1byte	0x28
+ 846 0038 0A          		.1byte	0x0
+ 847 0039 28          		.1byte	0x3
+ 848 0039 00          		.1byte	0xe
+ 849 003a 03          		.1byte	0x1c
+ 850 003a 0E          		.1byte	0xd
+ 851 003b 1C          		.1byte	0x0
+ 852 003b 0D          		.1byte	0x0
+ 853 003c 00          		.1byte	0xb
+ 854 003c 00          		.1byte	0x2e
+ 855 003d 0B          		.1byte	0x1
+ 856 003d 2E          		.1byte	0x3
+ 857 003e 01          		.1byte	0xe
+ 858 003e 03          		.1byte	0x3a
+ 859 003f 0E          		.1byte	0xb
+ 860 003f 3A          		.1byte	0x3b
+ 861 0040 0B          		.1byte	0xb
+ 862 0040 3B          		.1byte	0x27
+ 863 0041 0B          		.1byte	0xc
+ 864 0041 27          		.1byte	0x20
+ 865 0042 0C          		.1byte	0xb
+ 866 0042 20          		.1byte	0x1
+ 867 0043 0B          		.1byte	0x13
+ 868 0043 01          		.1byte	0x0
+ 869 0044 13          		.1byte	0x0
+ 870 0044 00          		.1byte	0xc
+ 871 0045 00          		.1byte	0x34
+ 872 0045 0C          		.1byte	0x0
+ 873 0046 34          		.1byte	0x3
+ 874 0046 00          		.1byte	0xe
+ 875 0047 03          		.1byte	0x3a
+ 876 0047 0E          		.1byte	0xb
+ 877 0048 3A          		.1byte	0x3b
+ 878 0048 0B          		.1byte	0xb
+ 879 0049 3B          		.1byte	0x49
+ 880 0049 0B          		.1byte	0x13
+ 881 004a 49          		.1byte	0x0
+ 882 004a 13          		.1byte	0x0
+ 883 004b 00          		.1byte	0xd
+ 884 004b 00          		.1byte	0xb
+ 885 004c 0D          		.1byte	0x1
+ 886 004c 0B          		.1byte	0x0
+ 887 004d 01          		.1byte	0x0
+ 888 004d 00          		.1byte	0xe
+ 889 004e 00          		.1byte	0x34
+ 890 004e 0E          		.1byte	0x0
+ 891 004f 34          		.1byte	0x3
+ 892 004f 00          		.1byte	0x8
+ 893 0050 03          		.1byte	0x3a
+ 894 0050 08          		.1byte	0xb
+ 895 0051 3A          		.1byte	0x3b
+ 896 0051 0B          		.1byte	0xb
+ 897 0052 3B          		.1byte	0x49
+ 898 0052 0B          		.1byte	0x13
+ 899 0053 49          		.1byte	0x0
+ 900 0053 13          		.1byte	0x0
+ 901 0054 00          		.1byte	0xf
+ 902 0054 00          		.1byte	0x2e
+ 903 0055 0F          		.1byte	0x1
+ 904 0055 2E          		.1byte	0x3f
+ 905 0056 01          		.1byte	0xc
+ 906 0056 3F          		.1byte	0x3
+ 907 0057 0C          		.1byte	0xe
+ 908 0057 03          		.1byte	0x3a
+ 909 0058 0E          		.1byte	0xb
+ 910 0058 3A          		.1byte	0x3b
+ 911 0059 0B          		.1byte	0xb
+ 912 0059 3B          		.1byte	0x27
+ 913 005a 0B          		.1byte	0xc
+ 914 005a 27          		.1byte	0x11
+ 915 005b 0C          		.1byte	0x1
+ 916 005b 11          		.1byte	0x12
+ 917 005c 01          		.1byte	0x1
+ 918 005c 12          		.1byte	0x40
+ 919 005d 01          		.1byte	0x6
+ 920 005d 40          		.1byte	0x0
+ 921 005e 06          		.1byte	0x0
+ 922 005e 00          		.1byte	0x10
+ 923 005f 00          		.1byte	0x34
+ 924 005f 10          		.1byte	0x0
+ 925 0060 34          		.1byte	0x3
+ 926 0060 00          		.1byte	0xe
+ 927 0061 03          		.1byte	0x3a
+ 928 0061 0E          		.1byte	0xb
+ 929 0062 3A          		.1byte	0x3b
+ 930 0062 0B          		.1byte	0xb
+ 931 0063 3B          		.1byte	0x49
+ 932 0063 0B          		.1byte	0x13
+ 933 0064 49          		.1byte	0x2
+ 934 0064 13          		.1byte	0xa
+ 935 0065 02          		.1byte	0x0
+ 936 0065 0A          		.1byte	0x0
+ 937 0066 00          		.1byte	0x11
+ 938 0066 00          		.1byte	0x1d
+ 939 0067 11          		.1byte	0x1
+ 940 0067 1D          		.1byte	0x31
+ 941 0068 01          		.1byte	0x13
+ 942 0068 31          		.1byte	0x11
+ 943 0069 13          		.1byte	0x1
+ 944 0069 11          		.1byte	0x12
+ 945 006a 01          		.1byte	0x1
+ 946 006a 12          		.1byte	0x58
+ 947 006b 01          		.1byte	0xb
+ 948 006b 58          		.1byte	0x59
+ 949 006c 0B          		.1byte	0xb
+ 950 006c 59          		.1byte	0x0
+ 951 006d 0B          		.1byte	0x0
+ 952 006d 00          		.1byte	0x12
+ 953 006e 00          		.1byte	0xb
+ 954 006e 12          		.1byte	0x1
+ 955 006f 0B          		.1byte	0x11
+ 956 006f 01          		.1byte	0x1
+ 957 0070 11          		.1byte	0x12
+ 958 0070 01          		.1byte	0x1
+ 959 0071 12          		.1byte	0x0
+ 960 0071 01          		.1byte	0x0
+ 961 0072 00          		.1byte	0x13
+ 962 0072 00          		.1byte	0x34
+ 963 0073 13          		.1byte	0x0
+ 964 0073 34          		.1byte	0x31
+ 965 0074 00          		.1byte	0x13
+ 966 0074 31          		.1byte	0x2
+ 967 0075 13          		.1byte	0xa
+ 968 0075 02          		.1byte	0x0
+ 969 0076 0A          		.1byte	0x0
+ 970 0076 00          		.1byte	0x14
+ 971 0077 00          		.1byte	0x34
+ 972 0077 14          		.1byte	0x0
+ 973 0078 34          		.1byte	0x31
+ 974 0078 00          		.1byte	0x13
+ 975 0079 31          		.1byte	0x0
+ 976 0079 13          		.1byte	0x0
+ 977 007a 00          		.1byte	0x0
+ 978 007a 00          		.section	.debug_pubnames,"",@progbits
+ 979 007b 00          		.4byte	0x29
+ 980                 		.2byte	0x2
+ 981 0000 00 00 00 29 		.4byte	.Ldebug_info0
+ 982 0002 00 02       		.4byte	0x38c
+ 983 0003 00 00 00 00 		.4byte	0x2eb
+ 984 0005 00 00 03 8C 		.ascii "startBeaconAdvertising\000"
+ 985 0007 00 00 02 EB 		.4byte	0x0
+ 986 0009 73 74 61 72 		.section	.debug_aranges,"",@progbits
+ 986      74 42 65 61 
+ 986      63 6F 6E 41 
+ 986      64 76 65 72 
+ 986      74 69 73 69 
+ 987 0014 00 00 00 00 		.4byte	0x1c
+ 988                 		.2byte	0x2
+ 989 0000 00 00 00 1C 		.4byte	.Ldebug_info0
+ 990 0002 00 02       		.1byte	0x4
+ 991 0003 00 00 00 00 		.1byte	0x0
+ 992 0005 04          		.2byte	0x0
+ 993 0005 00          		.2byte	0x0
+ 994 0006 00 00       		.4byte	.LFB3
+ 995 0007 00 00       		.4byte	.LFE3-.LFB3
+ 996 0008 00 00 00 00 		.4byte	0x0
+ 997 000a 00 00 00 00 		.4byte	0x0
+ 998 000c 00 00 00 00 		.section	.debug_ranges,"",@progbits
+ 999 000e 00 00 00 00 	.Ldebug_ranges0:
+ 1000                 		.4byte	.Ltext0
+ 1001                 		.4byte	.Letext0
+ 1002 0000 00 00 00 00 		.4byte	.LFB3
+ 1003 0002 00 00 00 00 		.4byte	.LFE3
+ 1004 0004 00 00 00 00 		.4byte	0x0
+ 1005 0006 00 00 00 00 		.4byte	0x0
+ 1006 0008 00 00 00 00 		.section	.debug_str,"MS",@progbits,1
+ 1007 000a 00 00 00 00 	.LASF23:
+ 1008                 		.ascii "whitelist_mode_conn_false\000"
+ 1009                 	.LASF88:
+ 1010 0000 77 68 69 74 		.ascii "appSetRandomAddress\000"
+ 1010      65 6C 69 73 
+ 1010      74 5F 6D 6F 
+ 1010      64 65 5F 63 
+ 1010      6F 6E 6E 5F 
+ 1011                 	.LASF36:
+ 1012 000d 61 70 70 53 		.ascii "AD_TYPE_OOB_SSP_HASH_C_192\000"
+ 1012      65 74 52 61 
+ 1012      6E 64 6F 6D 
+ 1012      41 64 64 72 
+ 1012      65 73 73 00 
+ 1013                 	.LASF69:
+ 1014 0017 41 44 5F 54 		.ascii "gap_mode_connect_no\000"
+ 1014      59 50 45 5F 
+ 1014      4F 4F 42 5F 
+ 1014      53 53 50 5F 
+ 1014      48 41 53 48 
+ 1015                 	.LASF32:
+ 1016 0024 67 61 70 5F 		.ascii "AD_TYPE_LOCAL_NAME_SHORT\000"
+ 1016      6D 6F 64 65 
+ 1016      5F 63 6F 6E 
+ 1016      6E 65 63 74 
+ 1016      5F 6E 6F 00 
+ 1017                 	.LASF74:
+ 1018 002e 41 44 5F 54 		.ascii "gap_mode_bond_yes\000"
+ 1018      59 50 45 5F 
+ 1018      4C 4F 43 41 
+ 1018      4C 5F 4E 41 
+ 1018      4D 45 5F 53 
+ 1019                 	.LASF62:
+ 1020 003b 67 61 70 5F 		.ascii "gap_role_peripheral\000"
+ 1020      6D 6F 64 65 
+ 1020      5F 62 6F 6E 
+ 1020      64 5F 79 65 
+ 1020      73 00 
+ 1021                 	.LASF73:
+ 1022 0044 67 61 70 5F 		.ascii "gap_mode_bond_no\000"
+ 1022      72 6F 6C 65 
+ 1022      5F 70 65 72 
+ 1022      69 70 68 65 
+ 1022      72 61 6C 00 
+ 1023                 	.LASF8:
+ 1024 004e 67 61 70 5F 		.ascii "short int\000"
+ 1024      6D 6F 64 65 
+ 1024      5F 62 6F 6E 
+ 1024      64 5F 6E 6F 
+ 1024      00 
+ 1025                 	.LASF21:
+ 1026 0056 73 68 6F 72 		.ascii "whitelist_mode_adv_false\000"
+ 1026      74 20 69 6E 
+ 1026      74 00 
+ 1027                 	.LASF76:
+ 1028 005b 77 68 69 74 		.ascii "gap_mode_security_unauthenticate\000"
+ 1028      65 6C 69 73 
+ 1028      74 5F 6D 6F 
+ 1028      64 65 5F 61 
+ 1028      64 76 5F 66 
+ 1029                 	.LASF44:
+ 1030 0068 67 61 70 5F 		.ascii "AD_TYPE_SERVICE_DATA_UUID_16BIT\000"
+ 1030      6D 6F 64 65 
+ 1030      5F 73 65 63 
+ 1030      75 72 69 74 
+ 1030      79 5F 75 6E 
+ 1031                 	.LASF58:
+ 1032 0078 41 44 5F 54 		.ascii "ad_src_scan_rsp\000"
+ 1032      59 50 45 5F 
+ 1032      53 45 52 56 
+ 1032      49 43 45 5F 
+ 1032      44 41 54 41 
+ 1033                 	.LASF53:
+ 1034 0088 61 64 5F 73 		.ascii "AD_TYPE_SERVICE_SOLICIT_UUID_32BIT\000"
+ 1034      72 63 5F 73 
+ 1034      63 61 6E 5F 
+ 1034      72 73 70 00 
+ 1035                 	.LASF33:
+ 1036 0090 41 44 5F 54 		.ascii "AD_TYPE_LOCAL_NAME_COMPLETE\000"
+ 1036      59 50 45 5F 
+ 1036      53 45 52 56 
+ 1036      49 43 45 5F 
+ 1036      53 4F 4C 49 
+ 1037                 	.LASF56:
+ 1038 00a2 41 44 5F 54 		.ascii "AD_TYPE_MANUF\000"
+ 1038      59 50 45 5F 
+ 1038      4C 4F 43 41 
+ 1038      4C 5F 4E 41 
+ 1038      4D 45 5F 43 
+ 1039                 	.LASF39:
+ 1040 00b0 41 44 5F 54 		.ascii "AD_TYPE_SM_FLAGS\000"
+ 1040      59 50 45 5F 
+ 1040      4D 41 4E 55 
+ 1040      46 00 
+ 1041                 	.LASF31:
+ 1042 00b7 41 44 5F 54 		.ascii "AD_TYPE_SERVICE_UUID_128BIT_LIST\000"
+ 1042      59 50 45 5F 
+ 1042      53 4D 5F 46 
+ 1042      4C 41 47 53 
+ 1042      00 
+ 1043                 	.LASF89:
+ 1044 00bf 41 44 5F 54 		.ascii "startBeaconAdvertising\000"
+ 1044      59 50 45 5F 
+ 1044      53 45 52 56 
+ 1044      49 43 45 5F 
+ 1044      55 55 49 44 
+ 1045                 	.LASF20:
+ 1046 00d0 73 74 61 72 		.ascii "whitelist_mode_scan_true\000"
+ 1046      74 42 65 61 
+ 1046      63 6F 6E 41 
+ 1046      64 76 65 72 
+ 1046      74 69 73 69 
+ 1047                 	.LASF1:
+ 1048 00db 77 68 69 74 		.ascii "uint16\000"
+ 1048      65 6C 69 73 
+ 1048      74 5F 6D 6F 
+ 1048      64 65 5F 73 
+ 1048      63 61 6E 5F 
+ 1049                 	.LASF34:
+ 1050 00e8 75 69 6E 74 		.ascii "AD_TYPE_TX_POWER\000"
+ 1050      31 36 00 
+ 1051                 	.LASF66:
+ 1052 00eb 41 44 5F 54 		.ascii "gap_mode_discover_limited\000"
+ 1052      59 50 45 5F 
+ 1052      54 58 5F 50 
+ 1052      4F 57 45 52 
+ 1052      00 
+ 1053                 	.LASF12:
+ 1054 00f4 67 61 70 5F 		.ascii "ls_addr_type_public\000"
+ 1054      6D 6F 64 65 
+ 1054      5F 64 69 73 
+ 1054      63 6F 76 65 
+ 1054      72 5F 6C 69 
+ 1055                 	.LASF0:
+ 1056 0101 6C 73 5F 61 		.ascii "uint8\000"
+ 1056      64 64 72 5F 
+ 1056      74 79 70 65 
+ 1056      5F 70 75 62 
+ 1056      6C 69 63 00 
+ 1057                 	.LASF63:
+ 1058 010b 75 69 6E 74 		.ascii "gap_role_central\000"
+ 1058      38 00 
+ 1059                 	.LASF47:
+ 1060 010e 67 61 70 5F 		.ascii "AD_TYPE_APPEARANCE\000"
+ 1060      72 6F 6C 65 
+ 1060      5F 63 65 6E 
+ 1060      74 72 61 6C 
+ 1060      00 
+ 1061                 	.LASF57:
+ 1062 0116 41 44 5F 54 		.ascii "ad_src_advertise\000"
+ 1062      59 50 45 5F 
+ 1062      41 50 50 45 
+ 1062      41 52 41 4E 
+ 1062      43 45 00 
+ 1063                 	.LASF85:
+ 1064 0120 61 64 5F 73 		.ascii "GNU C 4.3.4 CSR version 28 for xap [2131110]\000"
+ 1064      72 63 5F 61 
+ 1064      64 76 65 72 
+ 1064      74 69 73 65 
+ 1064      00 
+ 1065                 	.LASF70:
+ 1066 0128 47 4E 55 20 		.ascii "gap_mode_connect_directed\000"
+ 1066      43 20 34 2E 
+ 1066      33 2E 34 20 
+ 1066      43 53 52 20 
+ 1066      76 65 72 73 
+ 1067                 	.LASF28:
+ 1068 013f 67 61 70 5F 		.ascii "AD_TYPE_SERVICE_UUID_32BIT\000"
+ 1068      6D 6F 64 65 
+ 1068      5F 63 6F 6E 
+ 1068      6E 65 63 74 
+ 1068      5F 64 69 72 
+ 1069                 	.LASF9:
+ 1070 014c 41 44 5F 54 		.ascii "long int\000"
+ 1070      59 50 45 5F 
+ 1070      53 45 52 56 
+ 1070      49 43 45 5F 
+ 1070      55 55 49 44 
+ 1071                 	.LASF87:
+ 1072 0159 6C 6F 6E 67 		.ascii "C:\\Users\\Neil\\Documents\\firmware\\cryptobeacon\000"
+ 1072      20 69 6E 74 
+ 1072      00 
+ 1073                 	.LASF61:
+ 1074 015e 43 3A 5C 55 		.ascii "gap_role_observer\000"
+ 1074      73 65 72 73 
+ 1074      5C 4E 65 69 
+ 1074      6C 5C 44 6F 
+ 1074      63 75 6D 65 
+ 1075                 	.LASF25:
+ 1076 0175 67 61 70 5F 		.ascii "AD_TYPE_FLAGS\000"
+ 1076      72 6F 6C 65 
+ 1076      5F 6F 62 73 
+ 1076      65 72 76 65 
+ 1076      72 00 
+ 1077                 	.LASF64:
+ 1078 017e 41 44 5F 54 		.ascii "gap_mode_discover_null\000"
+ 1078      59 50 45 5F 
+ 1078      46 4C 41 47 
+ 1078      53 00 
+ 1079                 	.LASF13:
+ 1080 0185 67 61 70 5F 		.ascii "ls_addr_type_random\000"
+ 1080      6D 6F 64 65 
+ 1080      5F 64 69 73 
+ 1080      63 6F 76 65 
+ 1080      72 5F 6E 75 
+ 1081                 	.LASF16:
+ 1082 0190 6C 73 5F 61 		.ascii "whitelist_disabled\000"
+ 1082      64 64 72 5F 
+ 1082      74 79 70 65 
+ 1082      5F 72 61 6E 
+ 1082      64 6F 6D 00 
+ 1083                 	.LASF18:
+ 1084 019a 77 68 69 74 		.ascii "whitelist_mode_null\000"
+ 1084      65 6C 69 73 
+ 1084      74 5F 64 69 
+ 1084      73 61 62 6C 
+ 1084      65 64 00 
+ 1085                 	.LASF60:
+ 1086 01a4 77 68 69 74 		.ascii "gap_role_broadcaster\000"
+ 1086      65 6C 69 73 
+ 1086      74 5F 6D 6F 
+ 1086      64 65 5F 6E 
+ 1086      75 6C 6C 00 
+ 1087                 	.LASF71:
+ 1088 01ae 67 61 70 5F 		.ascii "gap_mode_connect_undirected\000"
+ 1088      72 6F 6C 65 
+ 1088      5F 62 72 6F 
+ 1088      61 64 63 61 
+ 1088      73 74 65 72 
+ 1089                 	.LASF65:
+ 1090 01b8 67 61 70 5F 		.ascii "gap_mode_discover_no\000"
+ 1090      6D 6F 64 65 
+ 1090      5F 63 6F 6E 
+ 1090      6E 65 63 74 
+ 1090      5F 75 6E 64 
+ 1091                 	.LASF14:
+ 1092 01c6 67 61 70 5F 		.ascii "ls_addr_type_null\000"
+ 1092      6D 6F 64 65 
+ 1092      5F 64 69 73 
+ 1092      63 6F 76 65 
+ 1092      72 5F 6E 6F 
+ 1093                 	.LASF42:
+ 1094 01d1 6C 73 5F 61 		.ascii "AD_TYPE_SERVICE_SOLICIT_UUID_16BIT\000"
+ 1094      64 64 72 5F 
+ 1094      74 79 70 65 
+ 1094      5F 6E 75 6C 
+ 1094      6C 00 
+ 1095                 	.LASF59:
+ 1096 01da 41 44 5F 54 		.ascii "gap_role_null\000"
+ 1096      59 50 45 5F 
+ 1096      53 45 52 56 
+ 1096      49 43 45 5F 
+ 1096      53 4F 4C 49 
+ 1097                 	.LASF6:
+ 1098 01eb 67 61 70 5F 		.ascii "uint24\000"
+ 1098      72 6F 6C 65 
+ 1098      5F 6E 75 6C 
+ 1098      6C 00 
+ 1099                 	.LASF2:
+ 1100 01f2 75 69 6E 74 		.ascii "unsigned char\000"
+ 1100      32 34 00 
+ 1101                 	.LASF72:
+ 1102 01f6 75 6E 73 69 		.ascii "gap_mode_bond_null\000"
+ 1102      67 6E 65 64 
+ 1102      20 63 68 61 
+ 1102      72 00 
+ 1103                 	.LASF49:
+ 1104 01fd 67 61 70 5F 		.ascii "AD_TYPE_LE_BT_ADDRESS\000"
+ 1104      6D 6F 64 65 
+ 1104      5F 62 6F 6E 
+ 1104      64 5F 6E 75 
+ 1104      6C 6C 00 
+ 1105                 	.LASF35:
+ 1106 0206 41 44 5F 54 		.ascii "AD_TYPE_OOB_DEVICE_CLASS\000"
+ 1106      59 50 45 5F 
+ 1106      4C 45 5F 42 
+ 1106      54 5F 41 44 
+ 1106      44 52 45 53 
+ 1107                 	.LASF29:
+ 1108 0211 41 44 5F 54 		.ascii "AD_TYPE_SERVICE_UUID_32BIT_LIST\000"
+ 1108      59 50 45 5F 
+ 1108      4F 4F 42 5F 
+ 1108      44 45 56 49 
+ 1108      43 45 5F 43 
+ 1109                 	.LASF40:
+ 1110 021e 41 44 5F 54 		.ascii "AD_TYPE_SLAVE_CONN_INTERVAL\000"
+ 1110      59 50 45 5F 
+ 1110      53 45 52 56 
+ 1110      49 43 45 5F 
+ 1110      55 55 49 44 
+ 1111                 	.LASF7:
+ 1112 022e 41 44 5F 54 		.ascii "signed char\000"
+ 1112      59 50 45 5F 
+ 1112      53 4C 41 56 
+ 1112      45 5F 43 4F 
+ 1112      4E 4E 5F 49 
+ 1113                 	.LASF15:
+ 1114 023c 73 69 67 6E 		.ascii "ls_addr_type\000"
+ 1114      65 64 20 63 
+ 1114      68 61 72 00 
+ 1115                 	.LASF10:
+ 1116 0242 6C 73 5F 61 		.ascii "unsigned int\000"
+ 1116      64 64 72 5F 
+ 1116      74 79 70 65 
+ 1116      00 
+ 1117                 	.LASF67:
+ 1118 0248 75 6E 73 69 		.ascii "gap_mode_discover_general\000"
+ 1118      67 6E 65 64 
+ 1118      20 69 6E 74 
+ 1118      00 
+ 1119                 	.LASF80:
+ 1120 024f 67 61 70 5F 		.ascii "advData\000"
+ 1120      6D 6F 64 65 
+ 1120      5F 64 69 73 
+ 1120      63 6F 76 65 
+ 1120      72 5F 67 65 
+ 1121                 	.LASF50:
+ 1122 025c 61 64 76 44 		.ascii "AD_TYPE_LE_ROLE\000"
+ 1122      61 74 61 00 
+ 1123                 	.LASF3:
+ 1124 0260 41 44 5F 54 		.ascii "short unsigned int\000"
+ 1124      59 50 45 5F 
+ 1124      4C 45 5F 52 
+ 1124      4F 4C 45 00 
+ 1125                 	.LASF79:
+ 1126 0268 73 68 6F 72 		.ascii "offset\000"
+ 1126      74 20 75 6E 
+ 1126      73 69 67 6E 
+ 1126      65 64 20 69 
+ 1126      6E 74 00 
+ 1127                 	.LASF84:
+ 1128 0271 6F 66 66 73 		.ascii "addressType\000"
+ 1128      65 74 00 
+ 1129                 	.LASF11:
+ 1130 0275 61 64 64 72 		.ascii "BD_ADDR_T\000"
+ 1130      65 73 73 54 
+ 1130      79 70 65 00 
+ 1131                 	.LASF19:
+ 1132 027b 42 44 5F 41 		.ascii "whitelist_mode_scan_false\000"
+ 1132      44 44 52 5F 
+ 1132      54 00 
+ 1133                 	.LASF78:
+ 1134 0280 77 68 69 74 		.ascii "addr\000"
+ 1134      65 6C 69 73 
+ 1134      74 5F 6D 6F 
+ 1134      64 65 5F 73 
+ 1134      63 61 6E 5F 
+ 1135                 	.LASF26:
+ 1136 028d 61 64 64 72 		.ascii "AD_TYPE_SERVICE_UUID_16BIT\000"
+ 1136      00 
+ 1137                 	.LASF38:
+ 1138 028f 41 44 5F 54 		.ascii "AD_TYPE_SM_TK\000"
+ 1138      59 50 45 5F 
+ 1138      53 45 52 56 
+ 1138      49 43 45 5F 
+ 1138      55 55 49 44 
+ 1139                 	.LASF68:
+ 1140 029d 41 44 5F 54 		.ascii "gap_mode_connect_null\000"
+ 1140      59 50 45 5F 
+ 1140      53 4D 5F 54 
+ 1140      4B 00 
+ 1141                 	.LASF27:
+ 1142 02a4 67 61 70 5F 		.ascii "AD_TYPE_SERVICE_UUID_16BIT_LIST\000"
+ 1142      6D 6F 64 65 
+ 1142      5F 63 6F 6E 
+ 1142      6E 65 63 74 
+ 1142      5F 6E 75 6C 
+ 1143                 	.LASF4:
+ 1144 02af 41 44 5F 54 		.ascii "uint32\000"
+ 1144      59 50 45 5F 
+ 1144      53 45 52 56 
+ 1144      49 43 45 5F 
+ 1144      55 55 49 44 
+ 1145                 	.LASF5:
+ 1146 02bf 75 69 6E 74 		.ascii "long unsigned int\000"
+ 1146      33 32 00 
+ 1147                 	.LASF41:
+ 1148 02c2 6C 6F 6E 67 		.ascii "AD_TYPE_SIGNED_DATA\000"
+ 1148      20 75 6E 73 
+ 1148      69 67 6E 65 
+ 1148      64 20 69 6E 
+ 1148      74 00 
+ 1149                 	.LASF46:
+ 1150 02cb 41 44 5F 54 		.ascii "AD_TYPE_RANDOM_TARGET_ADDRESS\000"
+ 1150      59 50 45 5F 
+ 1150      53 49 47 4E 
+ 1150      45 44 5F 44 
+ 1150      41 54 41 00 
+ 1151                 	.LASF54:
+ 1152 02d5 41 44 5F 54 		.ascii "AD_TYPE_SERVICE_DATA_UUID_32BIT\000"
+ 1152      59 50 45 5F 
+ 1152      52 41 4E 44 
+ 1152      4F 4D 5F 54 
+ 1152      41 52 47 45 
+ 1153                 	.LASF82:
+ 1154 02e4 41 44 5F 54 		.ascii "advInterval\000"
+ 1154      59 50 45 5F 
+ 1154      53 45 52 56 
+ 1154      49 43 45 5F 
+ 1154      44 41 54 41 
+ 1155                 	.LASF24:
+ 1156 02f4 61 64 76 49 		.ascii "whitelist_mode_conn_true\000"
+ 1156      6E 74 65 72 
+ 1156      76 61 6C 00 
+ 1157                 	.LASF52:
+ 1158 02fa 77 68 69 74 		.ascii "AD_TYPE_OOB_SSP_RANDOM_R_256\000"
+ 1158      65 6C 69 73 
+ 1158      74 5F 6D 6F 
+ 1158      64 65 5F 63 
+ 1158      6F 6E 6E 5F 
+ 1159                 	.LASF48:
+ 1160 0307 41 44 5F 54 		.ascii "AD_TYPE_ADVERTISING_INTERVAL\000"
+ 1160      59 50 45 5F 
+ 1160      4F 4F 42 5F 
+ 1160      53 53 50 5F 
+ 1160      52 41 4E 44 
+ 1161                 	.LASF81:
+ 1162 0315 41 44 5F 54 		.ascii "filler\000"
+ 1162      59 50 45 5F 
+ 1162      41 44 56 45 
+ 1162      52 54 49 53 
+ 1162      49 4E 47 5F 
+ 1163                 	.LASF51:
+ 1164 0324 66 69 6C 6C 		.ascii "AD_TYPE_OOB_SSP_HASH_C_256\000"
+ 1164      65 72 00 
+ 1165                 	.LASF22:
+ 1166 0327 41 44 5F 54 		.ascii "whitelist_mode_adv_true\000"
+ 1166      59 50 45 5F 
+ 1166      4F 4F 42 5F 
+ 1166      53 53 50 5F 
+ 1166      48 41 53 48 
+ 1167                 	.LASF55:
+ 1168 0335 77 68 69 74 		.ascii "AD_TYPE_SERVICE_DATA_UUID_128BIT\000"
+ 1168      65 6C 69 73 
+ 1168      74 5F 6D 6F 
+ 1168      64 65 5F 61 
+ 1168      64 76 5F 74 
+ 1169                 	.LASF77:
+ 1170 0341 41 44 5F 54 		.ascii "gap_mode_security_authenticate\000"
+ 1170      59 50 45 5F 
+ 1170      53 45 52 56 
+ 1170      49 43 45 5F 
+ 1170      44 41 54 41 
+ 1171                 	.LASF43:
+ 1172 0351 67 61 70 5F 		.ascii "AD_TYPE_SERVICE_SOLICIT_UUID_128BIT\000"
+ 1172      6D 6F 64 65 
+ 1172      5F 73 65 63 
+ 1172      75 72 69 74 
+ 1172      79 5F 61 75 
+ 1173                 	.LASF86:
+ 1174 0361 41 44 5F 54 		.ascii "beacon.c\000"
+ 1174      59 50 45 5F 
+ 1174      53 45 52 56 
+ 1174      49 43 45 5F 
+ 1174      53 4F 4C 49 
+ 1175                 	.LASF83:
+ 1176 0373 62 65 61 63 		.ascii "advPayloadSize\000"
+ 1176      6F 6E 2E 63 
+ 1176      00 
+ 1177                 	.LASF17:
+ 1178 0377 61 64 76 50 		.ascii "whitelist_enabled\000"
+ 1178      61 79 6C 6F 
+ 1178      61 64 53 69 
+ 1178      7A 65 00 
+ 1179                 	.LASF75:
+ 1180 037f 77 68 69 74 		.ascii "gap_mode_security_none\000"
+ 1180      65 6C 69 73 
+ 1180      74 5F 65 6E 
+ 1180      61 62 6C 65 
+ 1180      64 00 
+ 1181                 	.LASF45:
+ 1182 0388 67 61 70 5F 		.ascii "AD_TYPE_PUBLIC_TARGET_ADDRESS\000"
+ 1182      6D 6F 64 65 
+ 1182      5F 73 65 63 
+ 1182      75 72 69 74 
+ 1182      79 5F 6E 6F 
+ 1183                 	.LASF30:
+ 1184 0393 41 44 5F 54 		.ascii "AD_TYPE_SERVICE_UUID_128BIT\000"
+ 1184      59 50 45 5F 
+ 1184      50 55 42 4C 
+ 1184      49 43 5F 54 
+ 1184      41 52 47 45 
+ 1185                 	.LASF37:
+ 1186 03a2 41 44 5F 54 		.ascii "AD_TYPE_OOB_SSP_RANDOM_R_192\000"
+ 1186      59 50 45 5F 
+ 1186      53 45 52 56 
+ 1186      49 43 45 5F 
+ 1186      55 55 49 44 
+ 1187                 		.ident	"GCC: (GNU) 4.3.4 CSR version 28 for xap [2131110]"
+ 1188 03b0 41 44 5F 54 	...
+ 1188      59 50 45 5F 
+ 1188      4F 4F 42 5F 
+ 1188      53 53 50 5F 
+ 1188      52 41 4E 44 

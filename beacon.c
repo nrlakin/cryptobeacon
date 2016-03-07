@@ -28,8 +28,6 @@
  *  Private Function Prototypes
  *============================================================================*/
 
-static void startAdvertising(void);
-
 static void appSetRandomAddress(void);
 
 /*============================================================================*
@@ -77,10 +75,10 @@ static void appSetRandomAddress(void)
 
 /*----------------------------------------------------------------------------*
  *  NAME
- *      startAdvertising
+ *      startBeaconAdvertising
  *
  *  DESCRIPTION
- *      This function is called to start advertisements.
+ *      This function is called to start iBeacon advertisements.
  *
  *      Advertisement packet will contain Flags AD and Manufacturer-specific
  *      AD with Manufacturer id set to CSR and payload set to the value of
@@ -95,7 +93,7 @@ static void appSetRandomAddress(void)
  *      Nothing.
  *
  *---------------------------------------------------------------------------*/
-void startAdvertising(void)
+extern void startBeaconAdvertising(void)
 {
     uint8 advData[MAX_ADVERT_PACKET_SIZE];
     uint16 offset = 0;
@@ -103,25 +101,25 @@ void startAdvertising(void)
     uint16 advInterval;
     uint8 advPayloadSize;
     ls_addr_type addressType = ls_addr_type_public;     /* use public address */
-    
+
     /* initialise values from User CsKeys */
-    
+
     /* read User key 0 for the payload filler */
     filler = (uint8)(CSReadUserKey(0) & 0x00FF);
-    
+
     /* read User key 1 for the payload size */
     advPayloadSize = (uint8)(CSReadUserKey(1) & 0x00FF);
-    
+
     /* range check */
     if((advPayloadSize < 1) || (advPayloadSize > MAX_ADVERT_PAYLOAD_SIZE))
     {
         /* revert to default payload size */
         advPayloadSize = DEFAULT_ADVERT_PAYLOAD_SIZE;
     }
-    
+
     /* read User key 2 for the advertising interval */
     advInterval = CSReadUserKey(2);
-    
+
     /* range check */
     if((advInterval < MIN_ADVERTISING_INTERVAL) ||
        (advInterval > MAX_ADVERTISING_INTERVAL))
@@ -129,7 +127,7 @@ void startAdvertising(void)
         /* revert to default advertising interval */
         advInterval = DEFAULT_ADVERTISING_INTERVAL;
     }
-    
+
     /* read address type from User key 3 */
     if(CSReadUserKey(3))
     {
@@ -146,13 +144,13 @@ void startAdvertising(void)
                gap_mode_connect_no,
                gap_mode_bond_no,
                gap_mode_security_none);
-    
+
     /* clear the existing advertisement data, if any */
     LsStoreAdvScanData(0, NULL, ad_src_advertise);
 
     /* set the advertisement interval, API accepts the value in microseconds */
     GapSetAdvInterval(advInterval * MILLISECOND, advInterval * MILLISECOND);
-    
+
     /* manufacturer-specific data */
     advData[0] = AD_TYPE_MANUF;
 
@@ -161,7 +159,7 @@ void startAdvertising(void)
     advData[2] = 0x00;
     advData[3] = 0x02;
     advData[4] = 0x15;
-    
+
     /* fill in the rest of the advertisement */
     for(offset = 0; offset < 16; offset++)
     {
@@ -172,105 +170,7 @@ void startAdvertising(void)
     advData[5+offset]=0xB3;     //hacky TX power
     /* store the advertisement data */
     LsStoreAdvScanData(advPayloadSize + 3, advData, ad_src_advertise);
-    
+
     /* Start broadcasting */
     LsStartStopAdvertise(TRUE, whitelist_disabled, addressType);
-}
-
-
-/*============================================================================*
- *  Public Function Implementations
- *============================================================================*/
-
-/*----------------------------------------------------------------------------*
- *  NAME
- *      AppPowerOnReset
- *
- *  DESCRIPTION
- *      This function is called just after a power-on reset (including after
- *      a firmware panic).
- *
- *  RETURNS
- *      Nothing.
- *
- *---------------------------------------------------------------------------*/
-
-void AppPowerOnReset(void)
-{
-    /* empty */
-}
-
-/*----------------------------------------------------------------------------*
- *  NAME
- *      AppInit
- *
- *  DESCRIPTION
- *      This function is called after a power-on reset (including after a
- *      firmware panic) or after an HCI Reset has been requested.
- *
- *      NOTE: In the case of a power-on reset, this function is called
- *      after AppPowerOnReset().
- *
- *  RETURNS
- *      Nothing.
- *
- *---------------------------------------------------------------------------*/
-
-void AppInit(sleep_state last_sleep_state)
-{
-    /* set all PIOs except LEDs to inputs and pull them down */
-    PioSetModes(0xFFFFFFFFUL, pio_mode_user);
-    PioSetDirs(0xFFFFF1FFUL, FALSE);
-    PioSetPullModes(0xFFFFF1FFUL, pio_mode_strong_pull_down);
-    PioSetDirs(0x00000E00UL, TRUE);     // LEDs are set to output high (off)
-    PioSets(0x00000E00UL, 0x00000E00UL);
-    PioSetPullModes(0x00000E00UL, pio_mode_no_pulls);
-    
-    /* disable wake up on UART RX */
-    SleepWakeOnUartRX(FALSE);
-    
-    /* pull down the I2C lines */
-    PioSetI2CPullMode(pio_i2c_pull_mode_strong_pull_down);
-       
-    /* Start advertising */
-    startAdvertising();
-}
-
-
-/*----------------------------------------------------------------------------*
- *  NAME
- *      AppProcessSystemEvent
- *
- *  DESCRIPTION
- *      This user application function is called whenever a system event, such
- *      as a battery low notification, is received by the system.
- *
- *  RETURNS
- *      Nothing.
- *
- *---------------------------------------------------------------------------*/
-
-void AppProcessSystemEvent(sys_event_id id, void *data)
-{
-    /* empty */
-}
-
-
-/*----------------------------------------------------------------------------*
- *  NAME
- *      AppProcessLmEvent
- *
- *  DESCRIPTION
- *      This user application function is called whenever a LM-specific event is
- *      received by the system.
- *
- *  RETURNS
- *      Nothing.
- *
- *---------------------------------------------------------------------------*/
-
-bool AppProcessLmEvent(lm_event_code event_code, 
-                       LM_EVENT_T *p_event_data)
-{
-    return TRUE;
 }

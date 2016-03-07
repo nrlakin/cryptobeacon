@@ -37,9 +37,8 @@
                                 
 #include "gatt_access.h"    /* GATT-related routines */
 #include "app_gatt_db.h"    /* GATT database definitions */
-#include "buzzer.h"         /* Buzzer functions */
 #include "nvm_access.h"     /* Non-volatile memory access */
-#include "gatt_server.h"    /* Definitions used throughout the GATT server */
+#include "cryptobeacon.h"    /* Definitions used throughout the application */
 #include "hw_access.h"      /* Hardware access */
 #include "debug_interface.h"/* Application debug routines */
 #include "gap_service.h"    /* GAP service interface */
@@ -1766,7 +1765,7 @@ extern void ReportPanic(app_panic_code panic_code)
 extern void HandleShortButtonPress(void)
 {
     /* Indicate short button press using short beep */
-    SoundBuzzer(buzzer_beep_short);
+    //SoundBuzzer(buzzer_beep_short);
 
     /* Handle signal as per current state */
     switch(g_app_data.state)
@@ -1874,7 +1873,7 @@ extern void SetState(app_state new_state)
                 GattTriggerFastAdverts(&g_app_data.bonded_bd_addr);
 
                 /* Indicate advertising mode by sounding two short beeps */
-                SoundBuzzer(buzzer_beep_twice);
+                //SoundBuzzer(buzzer_beep_twice);
             }
             break;
 
@@ -1885,7 +1884,7 @@ extern void SetState(app_state new_state)
 
             case app_state_idle:
                 /* Sound long beep to indicate non-connectable mode */
-                SoundBuzzer(buzzer_beep_long);
+                //SoundBuzzer(buzzer_beep_long);
             break;
 
             case app_state_connected:

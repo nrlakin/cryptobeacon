@@ -1,0 +1,10 @@
+Project UUIDs
+
+Authentication Service
+58b8d07b-991c-4b91-913b-991881d26a0e
+
+Input Token characteristic
+be77ec1a-1f0b-4f45-a9d7-d0f3a06852b4
+
+Signed Token characteristic
+6d17f434-38c5-466e-8603-68c61ddc3c66

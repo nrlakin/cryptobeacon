@@ -1,30 +1,56 @@
-<project buildenvironment="{067c869e-5bd9-4595-9f4c-60348133ad8e}"
-		 buildenvironmentname="uEnergy"
-		 buildenvironmentoption="UENERGYSDK"
-		 executionenvironment="{39e65239-59f4-4d78-b84a-26eaebfaa4de}"
-		 executionenvironmentname="uEnergy"
-		 executionenvironmentoption="XAP2+ P0 ELF DWARF BINUTILS UENERGYSDK"
- 		 name="CSR uEnergy" >
+<project buildenvironment="{067c869e-5bd9-4595-9f4c-60348133ad8e}" buildenvironmentname="uEnergy" executionenvironmentoption="XAP2+ P0 ELF DWARF BINUTILS UENERGYSDK" buildenvironmentoption="UENERGYSDK" executionenvironmentname="uEnergy" name="CSR uEnergy" executionenvironment="{39e65239-59f4-4d78-b84a-26eaebfaa4de}" >
  <folder name="C Files" >
   <extension name="c" />
+  <file path="battery_service.c" />
+  <file path="beacon.c" />
+  <file path="debug_interface.c" />
+  <file path="dev_info_service.c" />
+  <file path="gap_service.c" />
+  <file path="gatt_access.c" />
+  <file path="hw_access.c" />
+  <file path="nvm_access.c" />
+  <file path="cryptobeacon.c" />
  </folder>
  <folder name="Header Files" >
   <extension name="h" />
+  <file path="appearance.h" />
+  <file path="battery_service.h" />
+  <file path="battery_uuids.h" />
+  <file path="beacon.h" />
+  <file path="debug_interface.h" />
+  <file path="dev_info_service.h" />
+  <file path="dev_info_uuids.h" />
+  <file path="gap_conn_params.h" />
+  <file path="gap_service.h" />
+  <file path="gap_uuids.h" />
+  <file path="gatt_access.h" />
+  <file path="gatt_service_uuids.h" />
+  <file path="hw_access.h" />
+  <file path="nvm_access.h" />
+  <file path="user_config.h" />
+  <file path="cryptobeacon.h" />
  </folder>
  <folder name="Assembler Files" >
   <extension name="asm" />
  </folder>
  <folder name="GATT db files" >
   <extension name="db" />
+  <file path="app_gatt_db.db" />
+  <file path="battery_service_db.db" />
+  <file path="dev_info_service_db.db" />
+  <file path="gap_service_db.db" />
+  <file path="gatt_service_db.db" />
  </folder>
+ <file path="cryptobeacon_csr101x_A05.keyr" />
  <properties currentconfiguration="Release" >
-  <configuration name="Release" >
+  <configuration name="Debug" >
    <property key="debugtransport" ></property>
    <property key="defines" ></property>
    <property key="libs" ></property>
    <property key="output" ></property>
   </configuration>
-  <configuration name="Debug" >
+  <configuration name="Release" >
+   <property key="csr101x_a05_keyr" >C:\Users\Neil\Documents\firmware\cryptobeacon\cryptobeacon_csr101x_A05.keyr</property>
    <property key="debugtransport" ></property>
    <property key="defines" ></property>
    <property key="libs" ></property>

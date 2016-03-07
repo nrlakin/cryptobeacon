@@ -25,7 +25,7 @@
  *============================================================================*/
 
 #include "nvm_access.h"     /* Interface to this file */
-#include "gatt_server.h"    /* Definitions used throughout the GATT server */
+#include "cryptobeacon.h"    /* Definitions used throughout the GATT server */
 
 /*============================================================================*
  *  Public Function Implementations
