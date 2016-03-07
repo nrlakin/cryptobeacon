@@ -1,0 +1,5 @@
+*.o
+*.d
+*.si
+depend_Release_CSR101x_A05/
+
