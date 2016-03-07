@@ -44,20 +44,20 @@
 #include "gap_service.h"    /* GAP service interface */
 #include "battery_service.h"/* Battery service interface */
 #include "auth_service.h"   /* Authentication service interface */
+#include "power_management.h"
 
 /*============================================================================*
  *  Private Definitions
  *============================================================================*/
 
-/* Maximum number of timers. Up to five timers are required by this application:
+/* Maximum number of timers. Up to four timers are required by this application:
  *  
- *  buzzer.c:       buzzer_tid
  *  This file:      con_param_update_tid
  *  This file:      app_tid
  *  This file:      bonding_reattempt_tid (if PAIRING_SUPPORT defined)
  *  hw_access.c:    button_press_tid
  */
-#define MAX_APP_TIMERS                 (5)
+#define MAX_APP_TIMERS                 (4)
 
 /* Number of Identity Resolving Keys (IRKs) that application can store */
 #define MAX_NUMBER_IRK_STORED          (1)
@@ -1720,6 +1720,9 @@ static void handleSignalLmDisconnectComplete(
         }
         break;
         
+        case app_state_dead:
+            break;
+            
         default:
             /* Control should never come here */
             ReportPanic(app_panic_invalid_state);
@@ -1928,6 +1931,11 @@ extern void SetState(app_state new_state)
                 GattDisconnectReq(g_app_data.st_ucid);
             break;
 
+            case app_state_dead:
+                TimerDelete(g_app_data.app_tid);
+                g_app_data.app_tid = TIMER_INVALID;
+                GoToSleep();
+            break;
             default:
             break;
         }
@@ -2288,6 +2296,7 @@ void AppProcessSystemEvent(sys_event_id id, void *data)
             {
                 BatteryUpdateLevel(g_app_data.st_ucid);
             }
+            SetState(app_state_dead);
         }
         break;
 

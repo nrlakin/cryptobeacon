@@ -12,9 +12,11 @@
   <file path="cryptobeacon.c" />
   <file path="auth_service.c" />
   <file path="leds.c" />
+  <file path="power_management.c" />
  </folder>
  <folder name="Header Files" >
   <extension name="h" />
+  <file path="auth_service.h" />
   <file path="appearance.h" />
   <file path="battery_service.h" />
   <file path="battery_uuids.h" />
@@ -31,10 +33,10 @@
   <file path="nvm_access.h" />
   <file path="user_config.h" />
   <file path="cryptobeacon.h" />
-  <file path="auth_service.h" />
   <file path="auth_uuids.h" />
   <file path="leds.h" />
   <file path="hw_config.h" />
+  <file path="power_management.h" />
  </folder>
  <folder name="Assembler Files" >
   <extension name="asm" />

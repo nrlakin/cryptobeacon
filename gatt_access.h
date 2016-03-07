@@ -57,7 +57,10 @@ typedef enum
     app_state_disconnecting,
 
     /* Application is neither advertising nor connected to a host */
-    app_state_idle
+    app_state_idle,
+    
+    /* Battery is dead, kill the radio. */
+    app_state_dead
 
 } app_state;
 

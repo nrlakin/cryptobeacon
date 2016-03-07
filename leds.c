@@ -49,6 +49,7 @@ void DisablePWMs(void) {
     PioSetMode(LED_RED, pio_mode_user);
     PioSetMode(LED_GREEN, pio_mode_user);
     PioSetMode(LED_BLUE, pio_mode_user);
+    PioSetPullModes(LED_PIO_MASK, pio_mode_no_pulls);
     PioSet(LED_RED, TRUE);
     PioSet(LED_GREEN, TRUE);
     PioSet(LED_BLUE, TRUE);

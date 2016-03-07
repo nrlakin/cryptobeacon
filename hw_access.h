@@ -42,6 +42,7 @@
 extern void IndicateAdvertisingServer(void);
 extern void IndicateConnection(void);
 extern void IndicateUnhandledState(void);
+extern void ReadyHWForSleep(void);
 
 /* Initialise the application hardware */
 extern void InitHardware(void);

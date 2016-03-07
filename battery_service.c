@@ -64,7 +64,7 @@ static BATT_DATA_T g_batt_data;
 #define BATTERY_CRITICAL_LEVEL                        (10)
 
 /* Battery minimum and maximum voltages in mV */
-#define BATTERY_FULL_BATTERY_VOLTAGE                  (4000)          /* 4.0V */
+#define BATTERY_FULL_BATTERY_VOLTAGE                  (4200)          /* 4.2V */
 #define BATTERY_FLAT_BATTERY_VOLTAGE                  (3200)          /* 3.2V */
 
 /* Number of words of NVM memory used by Battery Service */

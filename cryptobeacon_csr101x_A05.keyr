@@ -23,8 +23,8 @@
 &TX_POWER_LEVEL = 4
 
 // (0022) - Battery low threshold voltage
-// 3200mV -> 0xC80
-&BATTERY_THRESHOLD = 0C80
+// 3400mV -> 0xD48
+&BATTERY_THRESHOLD = 0D48
 
 // Depending on the NVM size, an application can specify the memory area to
 // be used for NVM storage. The start of NVM is used to store the application

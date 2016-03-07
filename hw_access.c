@@ -114,6 +114,14 @@ extern void IndicateUnhandledState(void) {
     SetLEDColor(5, 0, 0);
 }
 
+extern void ReadyHWForSleep(void) {
+    DisablePWMs();
+    //PioSetModes(LED_PIO_MASK, pio_mode_user);
+    //PioSetDirs(LED_PIO_MASK, FALSE);
+    //PioSetPullModes(LED_PIO_MASK, pio_mode_strong_pull_up);
+    //SetLEDColor(0, 0, 0);
+}
+    
 /*----------------------------------------------------------------------------*
  *  NAME
  *      InitHardware
