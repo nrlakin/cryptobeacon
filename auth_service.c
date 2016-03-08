@@ -16,6 +16,7 @@
 #include <gatt.h>           /* GATT application interface */
 #include <bluetooth.h>      /* Bluetooth specific type definitions */
 #include <mem.h>
+#include <buf_utils.h>
 
 /*============================================================================*
  *  Local Header files
@@ -24,24 +25,27 @@
 #include "app_gatt_db.h"    /* GATT database definitions */
 #include "auth_service.h"   /* Interface to this file */
 #include "crypto.h"         /* Token signing routines */
+#include "gatt_access.h"
 
 /*============================================================================*
  *  Local constants
  *============================================================================*/
 #define AUTH_TOKEN_LENGTH   (16)
 
-uint16 PrivateKey[8] = {0x1122, 0x3344, 0x5566, 0x7788, 0x99AA, 0xBBCC, 0xDDEE, 0xFF00};
+uint16 PrivateKey[8] = {0xFF00, 0xDDEE, 0xBBCC, 0x99AA, 0x7788, 0x5566, 0x3344, 0x1122};
 
 /*============================================================================*
  *  Local function prototypes
  *============================================================================*/
 static void signToken(void);
+static void notifySigned(void);
 
 typedef struct {
     uint8 input_token[AUTH_TOKEN_LENGTH];
     uint8 signed_token[AUTH_TOKEN_LENGTH];
 } AUTH_TOKEN_T;
 
+uint16 signed_token_client_config;
 uint16 auth_service_cid;
 AUTH_TOKEN_T auth_token;
 
@@ -54,6 +58,14 @@ static void signToken(void) {
     //auth_token.signed_token[i-1]&=0x00FF;   // deal w/ XAP's weird rollover.
     
     SignTokenAES(auth_token.input_token, auth_token.signed_token, PrivateKey);
+    notifySigned();
+}
+
+static void notifySigned(void) {
+    if (signed_token_client_config != gatt_client_config_notification) return;
+    
+    GattCharValueNotification(auth_service_cid, HANDLE_SIGNED_TOKEN, 
+                                AUTH_TOKEN_LENGTH, auth_token.signed_token);
 }
 
 /*----------------------------------------------------------------------------*
@@ -76,6 +88,7 @@ extern void InitAuthServiceData(void) {
         auth_token.input_token[i] = 0;
         auth_token.signed_token[i] = 0;
     }
+    signed_token_client_config = gatt_client_config_none;
 }
 
 /*----------------------------------------------------------------------------*
@@ -96,17 +109,27 @@ extern void InitAuthServiceData(void) {
 extern void AuthHandleAccessWrite(GATT_ACCESS_IND_T *p_ind)
 {
     uint8 *p_value = p_ind->value;      /* New attribute value */
+    uint16 client_config;
     sys_status rc = sys_status_success; /* Function status */
     uint16 length;
 
     switch(p_ind->handle) {
         case HANDLE_INPUT_TOKEN:
+            auth_service_cid = p_ind->cid;
             length = AUTH_TOKEN_LENGTH > p_ind->size_value ? p_ind->size_value : AUTH_TOKEN_LENGTH;
             MemCopy(auth_token.input_token, p_value, length);
             signToken();
             break;
  
-
+        case HANDLE_SIGNED_TOKEN_C_CFG:
+            auth_service_cid = p_ind->cid;
+            client_config = BufReadUint16(&p_value);
+            if ((client_config == gatt_client_config_notification) ||
+                    (client_config == gatt_client_config_none)) {
+                signed_token_client_config = client_config;
+            }
+            break;
+            
         default:
             rc = gatt_status_write_not_permitted;
         break;
@@ -125,10 +148,10 @@ extern void AuthHandleAccessRead(GATT_ACCESS_IND_T *p_ind) {
 
     switch (p_ind->handle) {
         case HANDLE_SIGNED_TOKEN:
+            auth_service_cid = p_ind->cid;
             length = AUTH_TOKEN_LENGTH;
             MemCopy(value, auth_token.signed_token, length);
             break;
-
             
         default:
             rc = gatt_status_read_not_permitted;
