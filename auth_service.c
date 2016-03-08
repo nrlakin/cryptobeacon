@@ -22,12 +22,15 @@
  *============================================================================*/
 
 #include "app_gatt_db.h"    /* GATT database definitions */
-#include "auth_service.h"/* Interface to this file */
+#include "auth_service.h"   /* Interface to this file */
+#include "crypto.h"         /* Token signing routines */
 
 /*============================================================================*
  *  Local constants
  *============================================================================*/
 #define AUTH_TOKEN_LENGTH   (16)
+
+uint16 PrivateKey[8] = {0x1122, 0x3344, 0x5566, 0x7788, 0x99AA, 0xBBCC, 0xDDEE, 0xFF00};
 
 /*============================================================================*
  *  Local function prototypes
@@ -43,12 +46,14 @@ uint16 auth_service_cid;
 AUTH_TOKEN_T auth_token;
 
 static void signToken(void) {
-    uint16 i;
-    for (i=0; i<AUTH_TOKEN_LENGTH; i++) {
-        auth_token.signed_token[i] = auth_token.input_token[i];
-    }
-    auth_token.signed_token[i-1]++;
-    auth_token.signed_token[i-1]&=0x00FF;   // deal w/ XAP's weird rollover.
+    //uint16 i;
+    //for (i=0; i<AUTH_TOKEN_LENGTH; i++) {
+    //    auth_token.signed_token[i] = auth_token.input_token[i];
+    //}
+    //auth_token.signed_token[i-1]++;
+    //auth_token.signed_token[i-1]&=0x00FF;   // deal w/ XAP's weird rollover.
+    
+    SignTokenAES(auth_token.input_token, auth_token.signed_token, PrivateKey);
 }
 
 /*----------------------------------------------------------------------------*

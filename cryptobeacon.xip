@@ -13,6 +13,11 @@
   <file path="auth_service.c" />
   <file path="leds.c" />
   <file path="power_management.c" />
+  <file path="crypto.c" >
+   <properties>
+    <configuration name="Release" />
+   </properties>
+  </file>
  </folder>
  <folder name="Header Files" >
   <extension name="h" />
@@ -37,6 +42,7 @@
   <file path="leds.h" />
   <file path="hw_config.h" />
   <file path="power_management.h" />
+  <file path="crypto.h" />
  </folder>
  <folder name="Assembler Files" >
   <extension name="asm" />
