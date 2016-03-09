@@ -53,12 +53,6 @@ extern void SetState(app_state new_state);
 /* Return the current state of the application.*/
 extern app_state GetState(void);
 
-/* Check if the whitelist is enabled or not. */
-extern bool IsWhiteListEnabled(void);
-
-/* Handle pairing removal */
-extern void HandlePairingRemoval(void);
-
 /* Start the advertisement timer. */
 extern void StartAdvertTimer(uint32 interval);
 

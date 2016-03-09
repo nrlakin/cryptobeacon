@@ -92,7 +92,7 @@ static void handleExtraLongButtonPress(timer_id tid)
         // SoundBuzzer(buzzer_beep_thrice);
 
         /* Handle pairing removal */
-        HandlePairingRemoval();
+        //HandlePairingRemoval();
 
     } /* Else ignore timer */
 

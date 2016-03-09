@@ -644,27 +644,8 @@ extern void GattStopAdverts(void)
 {
     switch(GetState())
     {
-        case app_state_fast_advertising:
-        {
-            if(IsWhiteListEnabled())
-            {
-                /* Set advertisement timer for remaining 20 seconds for fast
-                 * connections without any device in the white list.
-                 */
-                g_gatt_data.advert_timer_value = 
-                                FAST_CONNECTION_ADVERT_TIMEOUT_VALUE - 
-                                BONDED_DEVICE_ADVERT_TIMEOUT_VALUE;
-            }
-            else
-            {
-                /* No advertisement timer for reduced power connections. */
-                g_gatt_data.advert_timer_value = 
-                            SLOW_CONNECTION_ADVERT_TIMEOUT_VALUE;
-            }
-        }
-        /* FALLTHROUGH*/
-
-        case app_state_slow_advertising:
+        case app_state_beaconing:
+        case app_state_server_advertising:
             /* Stop on-going advertisements */
             GattCancelConnectReq();
         break;
