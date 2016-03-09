@@ -652,7 +652,11 @@ static void handleSignalGattCancelConnectCfm(void)
                 SetState(app_state_beaconing);
             }
             break;
-        
+            
+            case app_state_dead:
+                /* let it die. */
+            break;
+            
             default:
                 /* Control should never come here */
                 ReportPanic(app_panic_invalid_state);
@@ -1284,6 +1288,7 @@ extern void SetState(app_state new_state)
             case app_state_dead:
                 TimerDelete(g_app_data.app_tid);
                 g_app_data.app_tid = TIMER_INVALID;
+                GattCancelConnectReq();
                 GoToSleep();
             break;
             default:

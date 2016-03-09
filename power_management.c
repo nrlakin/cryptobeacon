@@ -11,8 +11,8 @@
 extern void GoToSleep(void) {
     //uint16 longtime[3] = {0xFFFF, 0xFFFF, 0x3FFF};
     //CsrMeshStop(TRUE);
-    LsStartStopAdvertise(FALSE, whitelist_disabled, ls_addr_type_null);
-    LsStartStopScan(FALSE, whitelist_disabled, ls_addr_type_null);
+    //LsStartStopAdvertise(FALSE, whitelist_disabled, ls_addr_type_null);
+    //LsStartStopScan(FALSE, whitelist_disabled, ls_addr_type_null);
     ReadyHWForSleep();
     SleepModeChange(sleep_mode_deep);
     //SleepRequest(sleep_state_hibernate, TRUE, longtime);
