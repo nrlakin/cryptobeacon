@@ -45,6 +45,7 @@
 #include "battery_service.h"/* Battery service interface */
 #include "auth_service.h"   /* Authentication service interface */
 #include "power_management.h"
+#include "nvm_map.h"
 
 /*============================================================================*
  *  Private Definitions
@@ -54,42 +55,9 @@
  *  
  *  This file:      con_param_update_tid
  *  This file:      app_tid
- *  This file:      bonding_reattempt_tid (if PAIRING_SUPPORT defined)
  *  hw_access.c:    button_press_tid
  */
-#define MAX_APP_TIMERS                 (4)
-
-/* Number of Identity Resolving Keys (IRKs) that application can store */
-#define MAX_NUMBER_IRK_STORED          (1)
-
-/* Magic value to check the sanity of Non-Volatile Memory (NVM) region used by
- * the application. This value is unique for each application.
- */
-#define NVM_SANITY_MAGIC               (0xABAA)
-
-/* NVM offset for NVM sanity word */
-#define NVM_OFFSET_SANITY_WORD         (0)
-
-/* NVM offset for bonded flag */
-#define NVM_OFFSET_BONDED_FLAG         (NVM_OFFSET_SANITY_WORD + 1)
-
-/* NVM offset for bonded device Bluetooth address */
-#define NVM_OFFSET_BONDED_ADDR         (NVM_OFFSET_BONDED_FLAG + \
-                                        sizeof(g_app_data.bonded))
-
-/* NVM offset for diversifier */
-#define NVM_OFFSET_SM_DIV              (NVM_OFFSET_BONDED_ADDR + \
-                                        sizeof(g_app_data.bonded_bd_addr))
-
-/* NVM offset for IRK */
-#define NVM_OFFSET_SM_IRK              (NVM_OFFSET_SM_DIV + \
-                                        sizeof(g_app_data.diversifier))
-
-/* Number of words of NVM used by application. Memory used by supported 
- * services is not taken into consideration here.
- */
-#define NVM_MAX_APP_MEMORY_WORDS       (NVM_OFFSET_SM_IRK + \
-                                        MAX_WORDS_IRK)
+#define MAX_APP_TIMERS                 (3)
 
 /* Slave device is not allowed to transmit another Connection Parameter 
  * Update request till time TGAP(conn_param_timeout). Refer to section 9.3.9.2,
@@ -136,26 +104,6 @@ typedef struct _APP_DATA_T
      */
     timer_id                   app_tid;
 
-    /* Boolean flag to indicate whether to set white list with the bonded
-     * device. This flag is used in an interim basis while configuring 
-     * advertisements.
-     */
-    bool                       enable_white_list;
-
-#ifdef PAIRING_SUPPORT
-    /* Boolean flag to indicate whether encryption is enabled with the bonded
-     * host
-     */
-    bool                       encrypt_enabled;
-
-    /* This timer will be used if the application is already bonded to the 
-     * remote host address but the remote device wanted to rebond which we had 
-     * declined. In this scenario, we give ample time to the remote device to 
-     * encrypt the link using old keys. If remote device doesn't encrypt the 
-     * link, we will disconnect the link when this timer expires.
-     */
-    timer_id                   bonding_reattempt_tid;
-#endif /* PAIRING_SUPPORT */
 
     /* Current connection interval */
     uint16                     conn_interval;
@@ -187,9 +135,6 @@ static void appDataInit(void);
 /* Initialise and read NVM data */
 static void readPersistentStore(void);
 
-/* Enable whitelist based advertising */
-static void enableWhiteList(void);
-
 #if defined(CONNECTED_IDLE_TIMEOUT_VALUE)
     /* Handle Idle timer expiry in connected states */
     static void appIdleTimerHandler(timer_id tid);
@@ -201,19 +146,11 @@ static void enableWhiteList(void);
 /* Start the Connection update timer */
 static void appStartConnUpdateTimer(void);
 
-#ifdef PAIRING_SUPPORT
-    /* Handle the expiry of the bonding chance timer */
-    static void handleBondingChanceTimerExpiry(timer_id tid);
-#endif /* PAIRING_SUPPORT */
-
 /* Send L2CAP_CONNECTION_PARAMETER_UPDATE_REQUEST to the remote device */
 static void requestConnParamUpdate(timer_id tid);
 
 /* Exit the advertising states */
 static void appExitAdvertising(void);
-
-/* Exit the initialisation state */
-static void appInitExit(void);
 
 /* Handle advertising timer expiry */
 static void appAdvertTimerHandler(timer_id tid);
@@ -233,16 +170,6 @@ static void handleSignalGattConnectCfm(GATT_CONNECT_CFM_T *p_event_data);
 
 /* SM_KEYS_IND signal handler */
 static void handleSignalSmKeysInd(SM_KEYS_IND_T *p_event_data);
-
-#ifdef PAIRING_SUPPORT
-    /* SM_PAIRING_AUTH_IND signal handler */
-    static void handleSignalSmPairingAuthInd(
-                    SM_PAIRING_AUTH_IND_T *p_event_data);
-    
-    /* LM_EV_ENCRYPTION_CHANGE signal handler */
-    static void handleSignalLMEncryptionChange(
-                    HCI_EV_DATA_ENCRYPTION_CHANGE_T *p_event_data);
-#endif /* PAIRING_SUPPORT */
 
 /* SM_SIMPLE_PAIRING_COMPLETE_IND signal handler */
 static void handleSignalSmSimplePairingCompleteInd(
@@ -305,21 +232,6 @@ static void appDataInit(void)
     /* Initialise the connected client ID */
     g_app_data.st_ucid = GATT_INVALID_UCID;
 
-    /* Initialise white list flag */
-    g_app_data.enable_white_list = FALSE;
-
-#ifdef PAIRING_SUPPORT
-    /* Initialise link encryption flag */
-    g_app_data.encrypt_enabled = FALSE;
-
-    /* Initialise the bonding reattempt timer */
-    if (g_app_data.bonding_reattempt_tid != TIMER_INVALID)
-    {
-        TimerDelete(g_app_data.bonding_reattempt_tid);
-        g_app_data.bonding_reattempt_tid = TIMER_INVALID;
-    }
-#endif /* PAIRING_SUPPORT */
-
     /* Reset the connection parameter variables */
     g_app_data.conn_interval = 0;
     g_app_data.conn_latency = 0;
@@ -340,7 +252,6 @@ static void appDataInit(void)
     /* Auth Service data initialization */
     InitAuthServiceData();
 
-    /* Call the required service data initialisation APIs from here */
 }
 
 /*----------------------------------------------------------------------------*
@@ -371,50 +282,12 @@ static void readPersistentStore(void)
     
     Nvm_Read(&nvm_sanity, 
              sizeof(nvm_sanity), 
-             NVM_OFFSET_SANITY_WORD);
+             NVM_ADDR_SANITY_WORD);
 
     if(nvm_sanity == NVM_SANITY_MAGIC)
     {
 
-        /* Read Bonded Flag from NVM */
-        Nvm_Read((uint16*)&g_app_data.bonded,
-                  sizeof(g_app_data.bonded),
-                  NVM_OFFSET_BONDED_FLAG);
-
-        if(g_app_data.bonded)
-        {
-            /* Bonded Host Typed BD Address will only be stored if bonded flag
-             * is set to TRUE. Read last bonded device address.
-             */
-            Nvm_Read((uint16*)&g_app_data.bonded_bd_addr, 
-                       sizeof(TYPED_BD_ADDR_T),
-                       NVM_OFFSET_BONDED_ADDR);
-
-            /* If device is bonded and bonded address is resolvable then read 
-             * the bonded device's IRK
-             */
-            if(GattIsAddressResolvableRandom(&g_app_data.bonded_bd_addr))
-            {
-                Nvm_Read(g_app_data.irk, 
-                         MAX_WORDS_IRK,
-                         NVM_OFFSET_SM_IRK);
-            }
-
-        }
-        else /* Case when we have only written NVM_SANITY_MAGIC to NVM but 
-              * didn't get bonded to any host in the last powered session
-              */
-        {
-            /* Any initialisation can be done here for non-bonded devices */
-            
-        }
-
-        /* Read the diversifier associated with the presently bonded/last 
-         * bonded device.
-         */
-        Nvm_Read(&g_app_data.diversifier, 
-                 sizeof(g_app_data.diversifier),
-                 NVM_OFFSET_SM_DIV);
+        /* Valid NVM */
 
         /* If NVM in use, read device name and length from NVM */
         GapReadDataFromNVM(&nvm_offset);
@@ -433,28 +306,7 @@ static void readPersistentStore(void)
         /* Write NVM Sanity word to the NVM */
         Nvm_Write(&nvm_sanity, 
                   sizeof(nvm_sanity), 
-                  NVM_OFFSET_SANITY_WORD);
-
-        /* The device will not be bonded as it is coming up for the first 
-         * time 
-         */
-        g_app_data.bonded = FALSE;
-
-        /* Write bonded status to NVM */
-        Nvm_Write((uint16*)&g_app_data.bonded, 
-                   sizeof(g_app_data.bonded), 
-                  NVM_OFFSET_BONDED_FLAG);
-
-        /* When the application is coming up for the first time after flashing 
-         * the image to it, it will not have bonded to any device. So, no LTK 
-         * will be associated with it. Hence, set the diversifier to 0.
-         */
-        g_app_data.diversifier = 0;
-
-        /* Write the same to NVM. */
-        Nvm_Write(&g_app_data.diversifier, 
-                  sizeof(g_app_data.diversifier),
-                  NVM_OFFSET_SM_DIV);
+                  NVM_ADDR_SANITY_WORD);
 
         /* If fresh NVM, write device name and length to NVM for the 
          * first time.
@@ -554,34 +406,6 @@ static void appStartConnUpdateTimer(void)
 
     }
 }
-
-#ifdef PAIRING_SUPPORT
-/*----------------------------------------------------------------------------*
- *  NAME
- *      handleBondingChanceTimerExpiry
- *
- *  DESCRIPTION
- *      This function is handle the expiry of bonding chance timer.
- *
- *  PARAMETERS
- *      tid [in]                ID of timer that has expired
- *
- *  RETURNS
- *      Nothing
- *----------------------------------------------------------------------------*/
-static void handleBondingChanceTimerExpiry(timer_id tid)
-{
-    if(g_app_data.bonding_reattempt_tid == tid)
-    {
-        /* The timer has just expired, so mark it as invalid */
-        g_app_data.bonding_reattempt_tid = TIMER_INVALID;
-        /* The bonding chance timer has expired. This means the remote has not
-         * encrypted the link using old keys. Disconnect the link.
-         */
-        SetState(app_state_disconnecting);
-    }/* Else it may be due to some race condition. Ignore it. */
-}
-#endif /* PAIRING_SUPPORT */
 
 /*----------------------------------------------------------------------------*
  *  NAME
@@ -695,36 +519,6 @@ static void appAdvertTimerHandler(timer_id tid)
       * some race condition */
 }
 
-/*----------------------------------------------------------------------------*
- *  NAME
- *      appInitExit
- *
- *  DESCRIPTION
- *      This function is called upon exiting from app_state_init state. The 
- *      application starts advertising after exiting this state.
- *
- *  PARAMETERS
- *      None
- *
- *  RETURNS
- *      Nothing
- *----------------------------------------------------------------------------*/
-static void appInitExit(void)
-{
-    if(g_app_data.bonded && 
-       !GattIsAddressResolvableRandom(&g_app_data.bonded_bd_addr))
-    {
-        /* If the device is bonded and the bonded device address is not
-         * resolvable random, configure the white list with the bonded 
-         * host address.
-         */
-        if(LsAddWhiteListDevice(&g_app_data.bonded_bd_addr) != ls_err_none)
-        {
-            ReportPanic(app_panic_add_whitelist);
-        }
-    }
-}
-
 #if defined(CONNECTED_IDLE_TIMEOUT_VALUE)
 /*----------------------------------------------------------------------------*
  *  NAME
@@ -777,7 +571,7 @@ static void handleSignalGattAddDbCfm(GATT_ADD_DB_CFM_T *p_event_data)
             if(p_event_data->result == sys_status_success)
             {
                 /* Start advertising. */
-                SetState(app_state_fast_advertising);
+                SetState(app_state_beaconing);
             }
             else
             {
@@ -837,83 +631,28 @@ static void handleSignalGattCancelConnectCfm(void)
         /* Pairing removal has been initiated by the user */
         g_app_data.pairing_button_pressed = FALSE;
 
-        /* Disable white list */
-        g_app_data.enable_white_list = FALSE;
-
-        /* Reset and clear the white list */
-        LsResetWhiteList();
-
         /* Trigger fast advertisements */
-        if(g_app_data.state == app_state_fast_advertising)
+        if(g_app_data.state == app_state_beaconing)
         {
-            GattTriggerFastAdverts(&g_app_data.bonded_bd_addr);
+            GattStartAdverts();
         }
         else
         {
-            SetState(app_state_fast_advertising);
+            SetState(app_state_beaconing);
         }
     }
     else
     {
-        /* Handle signal as per current state.
-         *
-         * The application follows this sequence in advertising state:
-         *
-         * 1. Fast advertising for FAST_CONNECTION_ADVERT_TIMEOUT_VALUE seconds:
-         *    If the application is bonded to a remote device then during this
-         *    period it will use the white list for the first
-         *    BONDED_DEVICE_ADVERT_TIMEOUT_VALUE seconds, and for the remaining
-         *    time (FAST_CONNECTION_ADVERT_TIMEOUT_VALUE - 
-         *    BONDED_DEVICE_ADVERT_TIMEOUT_VALUE seconds), it will do fast
-         *    advertising without any white list.
-         *
-         * 2. Slow advertising for SLOW_CONNECTION_ADVERT_TIMEOUT_VALUE seconds
-         */
         switch(g_app_data.state)
         {
-            case app_state_fast_advertising:
+            case app_state_beaconing:
             {
-                bool fastConns = FALSE;
-
-                if(g_app_data.enable_white_list == TRUE)
-                {
-                    /* Bonded device advertisements stopped. Reset the white
-                     * list
-                     */
-                    if(LsDeleteWhiteListDevice(&g_app_data.bonded_bd_addr)
-                        != ls_err_none)
-                    {
-                        ReportPanic(app_panic_delete_whitelist);
-                    }
-
-                    /* Case of stopping advertisements for the bonded device 
-                     * at the expiry of BONDED_DEVICE_ADVERT_TIMEOUT_VALUE timer
-                     */
-                    g_app_data.enable_white_list = FALSE;
-
-                    fastConns = TRUE;
-                }
-
-                if(fastConns)
-                {
-                    GattStartAdverts(&g_app_data.bonded_bd_addr, TRUE);
-
-                    /* Remain in same state */
-                }
-                else
-                {
-                    SetState(app_state_slow_advertising);
-                }
+                /* shouldn't happen, removed advertising timers. Just in
+                   case, re-enter beaconing state.                      */
+                SetState(app_state_beaconing);
             }
             break;
-
-            case app_state_slow_advertising:
-                /* If the application was doing slow advertisements, stop
-                 * advertising and move to idle state.
-                 */
-                SetState(app_state_idle);
-            break;
-            
+        
             default:
                 /* Control should never come here */
                 ReportPanic(app_panic_invalid_state);
@@ -941,8 +680,7 @@ static void handleSignalGattConnectCfm(GATT_CONNECT_CFM_T *p_event_data)
     /* Handle signal as per current state */
     switch(g_app_data.state)
     {
-        case app_state_fast_advertising:   /* FALLTHROUGH */
-        case app_state_slow_advertising:
+        case app_state_beaconing:
         {
             if(p_event_data->result == sys_status_success)
             {
@@ -951,71 +689,52 @@ static void handleSignalGattConnectCfm(GATT_CONNECT_CFM_T *p_event_data)
 
                 /* Store connected BD Address */
                 g_app_data.con_bd_addr = p_event_data->bd_addr;
+                
+                /* Enter connected state 
+                 * - If the device is not bonded OR
+                 * - If the device is bonded and the connected host doesn't 
+                 *   support Resolvable Random address OR
+                 * - If the device is bonded and connected host supports 
+                 *   Resolvable Random address and the address gets resolved
+                 *   using the stored IRK key
+                 */
+                 SetState(app_state_connected);
 
-                if(g_app_data.bonded && 
-                   GattIsAddressResolvableRandom(&g_app_data.bonded_bd_addr) &&
-                   (SMPrivacyMatchAddress(&p_event_data->bd_addr,
-                                          g_app_data.irk,
-                                          MAX_NUMBER_IRK_STORED, 
-                                          MAX_WORDS_IRK) < 0))
+                /* if the application does not mandate encryption
+                 * requirement on its characteristics, the remote master may
+                 * or may not encrypt the link. Start a timer here to give
+                 * remote master some time to encrypt the link and on expiry
+                 * of that timer, send a connection parameter update request
+                 * to remote device.
+                 */
+
+                /* If the current connection parameters being used don't 
+                 * comply with the application's preferred connection 
+                 * parameters and the timer is not running, start a timer
+                 * to trigger the Connection Parameter Update procedure.
+                 */
+
+                if(g_app_data.con_param_update_tid == TIMER_INVALID)
                 {
-                    /* Application was bonded to a remote device using 
-                     * resolvable random address and application has failed 
-                     * to resolve the remote device address to which we just 
-                     * connected, so disconnect and start advertising again
-                     */
-                    SetState(app_state_disconnecting);
-                }
-                else
-                {
-                    /* Enter connected state 
-                     * - If the device is not bonded OR
-                     * - If the device is bonded and the connected host doesn't 
-                     *   support Resolvable Random address OR
-                     * - If the device is bonded and connected host supports 
-                     *   Resolvable Random address and the address gets resolved
-                     *   using the stored IRK key
-                     */
-                    SetState(app_state_connected);
+                    appStartConnUpdateTimer();
+                } /* Else at the expiry of the timer the connection
+                   * parameter update procedure will be triggered
+                   */
 
-#ifndef PAIRING_SUPPORT
-                    /* if the application does not mandate encryption
-                     * requirement on its characteristics, the remote master may
-                     * or may not encrypt the link. Start a timer here to give
-                     * remote master some time to encrypt the link and on expiry
-                     * of that timer, send a connection parameter update request
-                     * to remote device.
-                     */
-
-                    /* If the current connection parameters being used don't 
-                     * comply with the application's preferred connection 
-                     * parameters and the timer is not running, start a timer
-                     * to trigger the Connection Parameter Update procedure.
-                     */
-
-                    if(g_app_data.con_param_update_tid == TIMER_INVALID)
-                    {
-                        appStartConnUpdateTimer();
-                    } /* Else at the expiry of the timer the connection
-                       * parameter update procedure will be triggered
-                       */
-
-#endif /* !PAIRING_SUPPORT */
-                }
             }
             else
             {
                 /* Connection failure - Trigger fast advertisements */
-                if(g_app_data.state == app_state_slow_advertising)
+                if(g_app_data.state != app_state_beaconing)
                 {
-                    SetState(app_state_fast_advertising);
+                    SetState(app_state_beaconing);
                 }
                 else
                 {
-                    /* Already in app_state_fast_advertising state, so just 
-                     * trigger fast advertisements
+                    /* Already in app_state_beaconing state, so just 
+                     * trigger advertisements
                      */
-                    GattStartAdverts(&g_app_data.bonded_bd_addr, TRUE);
+                    GattStartAdverts();
                 }
             }
         }
@@ -1046,38 +765,7 @@ static void handleSignalSmKeysInd(SM_KEYS_IND_T *p_event_data)
     /* Handle signal as per current state */
     switch(g_app_data.state)
     {
-        case app_state_connected:
-        {
-
-            /* Store the diversifier which will be used for accepting/rejecting
-             * the encryption requests.
-             */
-            g_app_data.diversifier = (p_event_data->keys)->div;
-
-            /* Write the new diversifier to NVM */
-            Nvm_Write(&g_app_data.diversifier,
-                      sizeof(g_app_data.diversifier), 
-                      NVM_OFFSET_SM_DIV);
-
-            /* Store IRK if the connected host is using random resolvable 
-             * address. IRK is used afterwards to validate the identity of 
-             * connected host 
-             */
-            if(GattIsAddressResolvableRandom(&g_app_data.con_bd_addr)) 
-            {
-                MemCopy(g_app_data.irk, 
-                        (p_event_data->keys)->irk,
-                        MAX_WORDS_IRK);
-
-                /* If bonded device address is resolvable random
-                 * then store IRK to NVM 
-                 */
-                Nvm_Write(g_app_data.irk, 
-                          MAX_WORDS_IRK, 
-                          NVM_OFFSET_SM_IRK);
-            }
-        }
-        break;
+        /* Shouldn't ever happen... */
 
         default:
             /* Control should never come here */
@@ -1085,112 +773,6 @@ static void handleSignalSmKeysInd(SM_KEYS_IND_T *p_event_data)
         break;
     }
 }
-
-#ifdef PAIRING_SUPPORT
-/*----------------------------------------------------------------------------*
- *  NAME
- *      handleSignalSmPairingAuthInd
- *
- *  DESCRIPTION
- *      This function handles the signal SM_PAIRING_AUTH_IND. This message will
- *      only be received when the peer device is initiating 'Just Works' 
- *      pairing.
- *
- *  PARAMETERS
- *      p_event_data [in]       Data supplied by SM_PAIRING_AUTH_IND signal
- *
- *  RETURNS
- *      Nothing
- *----------------------------------------------------------------------------*/
-static void handleSignalSmPairingAuthInd(SM_PAIRING_AUTH_IND_T *p_event_data)
-{
-    /* Handle signal as per current state */
-    switch(g_app_data.state)
-    {
-        case app_state_connected:
-        {
-            /* Authorise the pairing request if the application is NOT bonded */
-            if(!g_app_data.bonded)
-            {
-                SMPairingAuthRsp(p_event_data->data, TRUE);
-            }
-            else /* Otherwise Reject the pairing request */
-            {
-                SMPairingAuthRsp(p_event_data->data, FALSE);
-            }
-        }
-        break;
-
-        default:
-            ReportPanic(app_panic_invalid_state);
-        break;
-    }
-}
-
-/*----------------------------------------------------------------------------*
- *  NAME
- *      handleSignalLMEncryptionChange
- *
- *  DESCRIPTION
- *      This function handles the signal LM_EV_ENCRYPTION_CHANGE.
- *
- *  PARAMETERS
- *      p_event_data [in]       Data supplied by LM_EV_ENCRYPTION_CHANGE signal
- *
- *  RETURNS
- *      Nothing
- *----------------------------------------------------------------------------*/
-static void handleSignalLMEncryptionChange(
-                    HCI_EV_DATA_ENCRYPTION_CHANGE_T *p_event_data)
-{
-    /* Handle signal as per current state */
-    switch(g_app_data.state)
-    {
-        case app_state_connected:
-        {
-            if(p_event_data->status == sys_status_success)
-            {
-                g_app_data.encrypt_enabled = p_event_data->enc_enable;
-
-                if(g_app_data.encrypt_enabled)
-                {
-                    /* Delete the bonding chance timer, if running */
-                    if (g_app_data.bonding_reattempt_tid != TIMER_INVALID)
-                    {
-                        TimerDelete(g_app_data.bonding_reattempt_tid);
-                        g_app_data.bonding_reattempt_tid = TIMER_INVALID;
-                    }
-
-                    /* Update battery status at every connection instance. It 
-                     * may not be worth updating timer this often, but this will 
-                     * depend upon application requirements.
-                     */
-                    BatteryUpdateLevel(g_app_data.st_ucid);
-
-                    /* If the current connection parameters being used don't 
-                     * comply with the application's preferred connection 
-                     * parameters and the timer is not running, start a timer
-                     * to trigger the Connection Parameter Update procedure.
-                     */
-                    
-                    if(g_app_data.con_param_update_tid == TIMER_INVALID)
-                    {
-                        appStartConnUpdateTimer();
-                    } /* Else at the expiry of the timer the Connection
-                       * Parameter Update procedure will be triggered
-                       */
-                }
-            }
-        }
-        break;
-
-        default:
-            /* Control should never come here */
-            ReportPanic(app_panic_invalid_state);
-        break;
-    }
-}
-#endif /* #ifdef PAIRING_SUPPORT */
 
 /*----------------------------------------------------------------------------*
  *  NAME
@@ -1217,43 +799,7 @@ static void handleSignalSmSimplePairingCompleteInd(
         {
             if(p_event_data->status == sys_status_success)
             {
-                /* Store bonded host information to NVM. This includes
-                 * application and service specific information.
-                 */
-                g_app_data.bonded = TRUE;
-                g_app_data.bonded_bd_addr = p_event_data->bd_addr;
-
-                /* Store bonded host typed bd address to NVM */
-
-                /* Write one word bonded flag */
-                Nvm_Write((uint16*)&g_app_data.bonded, 
-                          sizeof(g_app_data.bonded), 
-                          NVM_OFFSET_BONDED_FLAG);
-
-                /* Write typed bd address of bonded host */
-                Nvm_Write((uint16*)&g_app_data.bonded_bd_addr, 
-                          sizeof(TYPED_BD_ADDR_T), 
-                          NVM_OFFSET_BONDED_ADDR);
-
-                /* Configure white list with the Bonded host address only 
-                 * if the connected host doesn't support random resolvable
-                 * addresses
-                 */
-                if(!GattIsAddressResolvableRandom(&g_app_data.bonded_bd_addr))
-                {
-                    /* It is important to note that this application does not
-                     * support Reconnection Address. In future, if the
-                     * application is enhanced to support Reconnection Address,
-                     * make sure that we don't add Reconnection Address to the
-                     * white list
-                     */
-                    if(LsAddWhiteListDevice(&g_app_data.bonded_bd_addr) !=
-                        ls_err_none)
-                    {
-                        ReportPanic(app_panic_add_whitelist);
-                    }
-
-                }
+                /* Chopped out a ton of code here. Shouldn't allow pairing. */
 
                 /* If the devices are bonded then send notification to all 
                  * registered services for the same so that they can store
@@ -1265,60 +811,6 @@ static void handleSignalSmSimplePairingCompleteInd(
             }
             else
             {
-#ifdef PAIRING_SUPPORT
-                /* Pairing has failed.
-                 * 1. If pairing has failed due to repeated attempts, the 
-                 *    application should immediately disconnect the link.
-                 * 2. If the application was bonded and pairing has failed, then
-                 *    since the application was using a white list the remote 
-                 *    device has the same address as our bonded device address.
-                 *    The remote connected device may be a genuine one but
-                 *    instead of using old keys, wanted to use new keys. We do
-                 *    not allow bonding again if we are already bonded but we
-                 *    will give the connected device some time to encrypt the
-                 *    link using the old keys. If the remote device fails to
-                 *    encrypt the link in that time we will disconnect the link.
-                 */
-                 if(p_event_data->status == sm_status_repeated_attempts)
-                 {
-                    SetState(app_state_disconnecting);
-                 }
-                 else if(g_app_data.bonded)
-                 {
-                    g_app_data.encrypt_enabled = FALSE;
-                    g_app_data.bonding_reattempt_tid = 
-                                          TimerCreate(
-                                               BONDING_CHANCE_TIMER,
-                                               TRUE, 
-                                               handleBondingChanceTimerExpiry);
-                 }
-#else /* !PAIRING_SUPPORT */
-                /* If application is already bonded to this host and pairing 
-                 * fails, remove device from the white list.
-                 */
-                if(g_app_data.bonded)
-                {
-                    if(LsDeleteWhiteListDevice(&g_app_data.bonded_bd_addr) != 
-                                        ls_err_none)
-                    {
-                        ReportPanic(app_panic_delete_whitelist);
-                    }
-
-                    g_app_data.bonded = FALSE;
-                }
-
-                /* The case when pairing has failed. The connection may still be
-                 * there if the remote device hasn't disconnected it. The
-                 * remote device may retry pairing after a time defined by its
-                 * own application. So reset all other variables except the
-                 * connection specific ones.
-                 */
-
-                /* Update bonded status to NVM */
-                Nvm_Write((uint16*)&g_app_data.bonded,
-                          sizeof(g_app_data.bonded),
-                          NVM_OFFSET_BONDED_FLAG);
-
                 /* Initialise the data of used services as the device is no 
                  * longer bonded to the remote host.
                  */
@@ -1328,7 +820,6 @@ static void handleSignalSmSimplePairingCompleteInd(
                 /* Call all the APIs which initailise the required service(s)
                  * supported by the application.
                  */
-#endif /* PAIRING_SUPPORT */
 
             }
         }
@@ -1368,19 +859,6 @@ static void handleSignalSmDivApproveInd(SM_DIV_APPROVE_IND_T *p_event_data)
         {
             sm_div_verdict approve_div = SM_DIV_REVOKED;
             
-            /* Check whether the application is still bonded (bonded flag gets
-             * reset upon 'connect' button press by the user). Then check 
-             * whether the diversifier is the same as the one stored by the 
-             * application
-             */
-            if(g_app_data.bonded)
-            {
-                if(g_app_data.diversifier == p_event_data->div)
-                {
-                    approve_div = SM_DIV_APPROVED;
-                }
-            }
-
             SMDivApproval(p_event_data->cid, approve_div);
         }
         break;
@@ -1601,64 +1079,14 @@ static void handleSignalLmDisconnectComplete(
             if(p_event_data->reason == HCI_ERROR_CONN_TIMEOUT)
             {
                 /* Start undirected advertisements by moving to 
-                 * app_state_fast_advertising state
+                 * app_state_beaconing state
                  */
-                SetState(app_state_fast_advertising);
+                SetState(app_state_beaconing);
             }
             else if(p_event_data->reason == HCI_ERROR_CONN_TERM_LOCAL_HOST)
             {
-
-                if(g_app_data.state == app_state_connected)
-                {
-                    /* It is possible to receive LM_EV_DISCONNECT_COMPLETE 
-                     * event in app_state_connected state at the expiry of 
-                     * lower layers' ATT/SMP timer leading to disconnect
-                     */
-
-                    /* Start undirected advertisements by moving to 
-                     * app_state_fast_advertising state
-                     */
-                    SetState( app_state_fast_advertising);
-                }
-                else
-                {
-                    /* Case when application has triggered disconnect */
-
-                    if(g_app_data.bonded)
-                    {
-                        /* If the device is bonded and host uses resolvable 
-                         * random address, the device initiates disconnect 
-                         * procedure if it gets reconnected to a different 
-                         * host, in which case device should trigger fast 
-                         * advertisements after disconnecting from the last 
-                         * connected host.
-                         */
-                        if(GattIsAddressResolvableRandom(
-                                            &g_app_data.bonded_bd_addr) &&
-                           (SMPrivacyMatchAddress(&g_app_data.con_bd_addr,
-                                            g_app_data.irk,
-                                            MAX_NUMBER_IRK_STORED, 
-                                            MAX_WORDS_IRK) < 0))
-                        {
-                            SetState( app_state_fast_advertising);
-                        }
-                        else
-                        {
-                            /* Else move to app_state_idle state because of 
-                             * user action or inactivity
-                             */
-                            SetState(app_state_idle);
-                        }
-                    }
-                    else /* Case of Bonding/Pairing removal */
-                    {
-                        /* Start undirected advertisements by moving to 
-                         * app_state_fast_advertising state
-                         */
-                        SetState(app_state_fast_advertising);
-                    }
-                }
-
+                /* Removed pairing/bonding code */
+                SetState(app_state_beaconing);
             }
             else /* Remote user terminated connection case */
             {
@@ -1670,19 +1098,14 @@ static void handleSignalLmDisconnectComplete(
                  * bond. If not the application should be discoverable by other 
                  * devices.
                  */
-                if(!g_app_data.bonded)
-                {
-                    SetState( app_state_fast_advertising);
-                }
-                else /* Case when disconnect is triggered by a bonded Host */
-                {
-                    SetState( app_state_idle);
-                }
+                /* Again, much complexity removed */
+                SetState(app_state_beaconing);
             }
         }
         break;
         
         case app_state_dead:
+            /* Just to prevent panic. */
             break;
             
         default:
@@ -1733,8 +1156,6 @@ extern void ReportPanic(app_panic_code panic_code)
  *----------------------------------------------------------------------------*/
 extern void HandleShortButtonPress(void)
 {
-    /* Indicate short button press using short beep */
-    //SoundBuzzer(buzzer_beep_short);
 
     /* Handle signal as per current state */
     switch(g_app_data.state)
@@ -1747,11 +1168,6 @@ extern void HandleShortButtonPress(void)
              * idle timer which will eventually initiate the disconnect.
              */
              
-        break;
-
-        case app_state_idle:
-            /* Trigger fast advertisements */
-            SetState(app_state_fast_advertising);
         break;
 
         default:
@@ -1786,9 +1202,9 @@ extern void SetState(app_state new_state)
         switch (old_state)
         {
             case app_state_init:
-                appInitExit();
-            break;
-
+                /* Do nothing */
+                break;
+                
             case app_state_disconnecting:
                 /* Common things to do whenever application exits
                  * app_state_disconnecting state.
@@ -1800,8 +1216,7 @@ extern void SetState(app_state new_state)
                 appDataInit();
             break;
 
-            case app_state_fast_advertising:  /* FALLTHROUGH */
-            case app_state_slow_advertising:
+            case app_state_beaconing:
                 /* Common things to do whenever application exits
                  * APP_*_ADVERTISING state.
                  */
@@ -1816,8 +1231,8 @@ extern void SetState(app_state new_state)
                  */
             break;
 
-            case app_state_idle:
-                /* Nothing to do */
+            case app_state_dead:
+                /* Eventually wake up code goes here */
             break;
 
             default:
@@ -1831,32 +1246,14 @@ extern void SetState(app_state new_state)
         /* Enter new state */
         switch (new_state)
         {
-            case app_state_fast_advertising:
+            case app_state_beaconing:
             {
-                /* Enable white list if application is bonded to some remote 
-                 * device and that device is not using resolvable random 
-                 * address.
-                 */
-                enableWhiteList();
                 /* Trigger fast advertisements. */
-                GattTriggerFastAdverts(&g_app_data.bonded_bd_addr);
+                GattStartAdverts();
 
-                /* Indicate advertising mode by sounding two short beeps */
+                /* Indicate advertising mode on LED. */
                 IndicateAdvertisingServer();
-                //SoundBuzzer(buzzer_beep_twice);
             }
-            break;
-
-            case app_state_slow_advertising:
-                /* Start slow advertisements */
-                IndicateAdvertisingServer();
-                GattStartAdverts(&g_app_data.bonded_bd_addr, FALSE);
-            break;
-
-            case app_state_idle:
-                /* Sound long beep to indicate non-connectable mode */
-                IndicateUnhandledState();
-                //SoundBuzzer(buzzer_beep_long);
             break;
 
             case app_state_connected:
@@ -1865,21 +1262,12 @@ extern void SetState(app_state new_state)
                  * app_state_connected state.
                  */
                 IndicateConnection();
-#ifdef PAIRING_SUPPORT                
-                /* Trigger SM Slave Security request only if the remote 
-                 * host is not using resolvable random address
-                 */
-                if(!GattIsAddressResolvableRandom(&g_app_data.con_bd_addr))
-                {
-                    SMRequestSecurityLevel(&g_app_data.con_bd_addr);
-                }
-#else /* !PAIRING_SUPPORT */
+
                 /* Update battery status at every connection instance. It may 
                  * not be worth updating timer this often, but this will 
                  * depend upon application requirements 
                  */
                 BatteryUpdateLevel(g_app_data.st_ucid);
-#endif /* PAIRING_SUPPORT */
 
 #if defined(CONNECTED_IDLE_TIMEOUT_VALUE)
                 resetIdleTimer();
@@ -1899,6 +1287,7 @@ extern void SetState(app_state new_state)
                 GoToSleep();
             break;
             default:
+                IndicateUnhandledState();
             break;
         }
     }
@@ -1945,25 +1334,6 @@ extern void StartAdvertTimer(uint32 interval)
 
     /* Start advertisement timer  */
     g_app_data.app_tid = TimerCreate(interval, TRUE, appAdvertTimerHandler);
-}
-
-/*----------------------------------------------------------------------------*
- *  NAME
- *      IsDeviceBonded
- *
- *  DESCRIPTION
- *      This function returns the status whether the connected device is 
- *      bonded or not.
- *
- *  PARAMETERS
- *      None
- *
- *  RETURNS
- *      TRUE if device is bonded, FALSE if not.
- *----------------------------------------------------------------------------*/
-extern bool IsDeviceBonded(void)
-{
-    return g_app_data.bonded;
 }
 
 /*----------------------------------------------------------------------------*
@@ -2061,9 +1431,6 @@ extern void AppInit(sleep_state last_sleep_state)
     /* Initialise local timers */
     g_app_data.con_param_update_tid = TIMER_INVALID;
     g_app_data.app_tid = TIMER_INVALID;
-#ifdef PAIRING_SUPPORT
-    g_app_data.bonding_reattempt_tid = TIMER_INVALID;
-#endif
 
     /* Initialise GATT entity */
     GattInit();
@@ -2101,7 +1468,7 @@ extern void AppInit(sleep_state last_sleep_state)
     /* Tell Security Manager module what value it needs to initialise its
      * diversifier to.
      */
-    SMInit(g_app_data.diversifier);
+    //SMInit(g_app_data.diversifier);
     
     /* Initialise hardware data */
     HwDataInit();
@@ -2219,14 +1586,6 @@ bool AppProcessLmEvent(lm_event_code event_code, LM_EVENT_T *p_event_data)
              */
             handleSignalSmKeysInd((SM_KEYS_IND_T *)p_event_data);
         break;
-
-#ifdef PAIRING_SUPPORT
-        case SM_PAIRING_AUTH_IND:
-            /* Authorise or Reject the pairing request */
-            handleSignalSmPairingAuthInd((SM_PAIRING_AUTH_IND_T*)p_event_data);
-        break;
-#endif /* PAIRING_SUPPORT */
-
 
         case SM_SIMPLE_PAIRING_COMPLETE_IND:
             /* Indication for completion of Pairing procedure */

@@ -44,11 +44,8 @@ typedef enum
     /* Application initial state */
     app_state_init = 0,
 
-    /* Application is performing fast undirected advertisements */
+    /* Application is acting as an iBeacon */
     app_state_beaconing,
-
-    /* Application is performing slow undirected advertisements */
-    app_state_server_advertising,
 
     /* Connection has been established with the host */
     app_state_connected,
@@ -169,9 +166,6 @@ extern uint16 GetSupported128BitUUIDServiceList(uint8 *p_service_uuid_ad);
 
 /* Check if the address is resolvable random or not */
 extern bool GattIsAddressResolvableRandom(TYPED_BD_ADDR_T *p_addr);
-
-/* Trigger fast advertisements */
-extern void GattTriggerFastAdverts(TYPED_BD_ADDR_T *p_addr);
 
 /* Initialise the application GATT data. */
 extern void InitGattData(void);

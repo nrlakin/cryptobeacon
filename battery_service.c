@@ -150,14 +150,7 @@ static uint8 readBatteryLevel(void)
  *----------------------------------------------------------------------------*/
 extern void BatteryDataInit(void)
 {
-    if(!IsDeviceBonded())
-    {
-        /* Initialise battery level client configuration characterisitic
-         * descriptor value only if device is not bonded
-         */
-        g_batt_data.level_client_config = gatt_client_config_none;
-    }
-
+    g_batt_data.level_client_config = gatt_client_config_none;
 }
 
 /*----------------------------------------------------------------------------*
@@ -280,17 +273,6 @@ extern void BatteryHandleAccessWrite(GATT_ACCESS_IND_T *p_ind)
                (client_config == gatt_client_config_none))
             {
                 g_batt_data.level_client_config = client_config;
-
-                /* Write battery level client configuration to NVM if the 
-                 * device is bonded.
-                 */
-                if(IsDeviceBonded())
-                {
-                     Nvm_Write(&client_config,
-                              sizeof(client_config),
-                              g_batt_data.nvm_offset + 
-                              BATTERY_NVM_LEVEL_CLIENT_CONFIG_OFFSET);
-                }
             }
             else
             {
@@ -392,16 +374,6 @@ extern void BatteryReadDataFromNVM(uint16 *p_offset)
 
     g_batt_data.nvm_offset = *p_offset;
 
-    /* Read NVM only if devices are bonded */
-    if(IsDeviceBonded())
-    {
-        /* Read battery level client configuration descriptor */
-        Nvm_Read((uint16*)&g_batt_data.level_client_config,
-                sizeof(g_batt_data.level_client_config),
-                *p_offset + 
-                BATTERY_NVM_LEVEL_CLIENT_CONFIG_OFFSET);
-    }
-
     /* Increment the offset by the number of words of NVM memory required 
      * by the Battery Service 
      */
@@ -447,16 +419,6 @@ extern bool BatteryCheckHandleRange(uint16 handle)
 extern void BatteryBondingNotify(void)
 {
 
-    /* Write data to NVM if bond is established */
-    if(IsDeviceBonded())
-    {
-        /* Write to NVM the client configuration value of battery level 
-         * that was configured prior to bonding 
-         */
-        Nvm_Write((uint16*)&g_batt_data.level_client_config, 
-                  sizeof(g_batt_data.level_client_config), 
-                  g_batt_data.nvm_offset + 
-                  BATTERY_NVM_LEVEL_CLIENT_CONFIG_OFFSET);
-    }
+    /* do nothing */
 
 }

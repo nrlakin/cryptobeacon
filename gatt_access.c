@@ -608,27 +608,6 @@ extern bool GattIsAddressResolvableRandom(TYPED_BD_ADDR_T *p_addr)
 
 /*----------------------------------------------------------------------------*
  *  NAME
- *      GattTriggerFastAdverts
- *
- *  DESCRIPTION
- *      This function is used to trigger fast advertisements.
- *
- *  PARAMETERS
- *      p_addr [in]             Bonded host address
- *
- *  RETURNS
- *      Nothing
- *----------------------------------------------------------------------------*/
-extern void GattTriggerFastAdverts(TYPED_BD_ADDR_T *p_addr)
-{
-    g_gatt_data.advert_timer_value = FAST_CONNECTION_ADVERT_TIMEOUT_VALUE;
-
-    /* Trigger fast connections */
-    GattStartAdverts();
-}
-
-/*----------------------------------------------------------------------------*
- *  NAME
  *      GattStopAdverts
  *
  *  DESCRIPTION
@@ -645,7 +624,6 @@ extern void GattStopAdverts(void)
     switch(GetState())
     {
         case app_state_beaconing:
-        case app_state_server_advertising:
             /* Stop on-going advertisements */
             GattCancelConnectReq();
         break;

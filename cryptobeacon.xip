@@ -43,6 +43,7 @@
   <file path="hw_config.h" />
   <file path="power_management.h" />
   <file path="crypto.h" />
+  <file path="nvm_map.h" />
  </folder>
  <folder name="Assembler Files" >
   <extension name="asm" />

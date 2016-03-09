@@ -38,7 +38,7 @@ uint16 PrivateKey[8] = {0xFF00, 0xDDEE, 0xBBCC, 0x99AA, 0x7788, 0x5566, 0x3344, 
  *  Local function prototypes
  *============================================================================*/
 static void signToken(void);
-static void notifySigned(void);
+static void notifySigned(uint16 ucid);
 
 typedef struct {
     uint8 input_token[AUTH_TOKEN_LENGTH];
@@ -46,7 +46,6 @@ typedef struct {
 } AUTH_TOKEN_T;
 
 uint16 signed_token_client_config;
-uint16 auth_service_cid;
 AUTH_TOKEN_T auth_token;
 
 static void signToken(void) {
@@ -58,13 +57,12 @@ static void signToken(void) {
     //auth_token.signed_token[i-1]&=0x00FF;   // deal w/ XAP's weird rollover.
     
     SignTokenAES(auth_token.input_token, auth_token.signed_token, PrivateKey);
-    notifySigned();
 }
 
-static void notifySigned(void) {
+static void notifySigned(uint16 ucid) {
     if (signed_token_client_config != gatt_client_config_notification) return;
     
-    GattCharValueNotification(auth_service_cid, HANDLE_SIGNED_TOKEN, 
+    GattCharValueNotification(ucid, HANDLE_SIGNED_TOKEN, 
                                 AUTH_TOKEN_LENGTH, auth_token.signed_token);
 }
 
@@ -115,14 +113,12 @@ extern void AuthHandleAccessWrite(GATT_ACCESS_IND_T *p_ind)
 
     switch(p_ind->handle) {
         case HANDLE_INPUT_TOKEN:
-            auth_service_cid = p_ind->cid;
             length = AUTH_TOKEN_LENGTH > p_ind->size_value ? p_ind->size_value : AUTH_TOKEN_LENGTH;
             MemCopy(auth_token.input_token, p_value, length);
             signToken();
             break;
  
         case HANDLE_SIGNED_TOKEN_C_CFG:
-            auth_service_cid = p_ind->cid;
             client_config = BufReadUint16(&p_value);
             if ((client_config == gatt_client_config_notification) ||
                     (client_config == gatt_client_config_none)) {
@@ -138,6 +134,10 @@ extern void AuthHandleAccessWrite(GATT_ACCESS_IND_T *p_ind)
 
     /* Send ACCESS RESPONSE */
     GattAccessRsp(p_ind->cid, p_ind->handle, rc, 0, NULL);
+    
+    if (p_ind->handle == HANDLE_INPUT_TOKEN) {
+        notifySigned(p_ind->cid);
+    }
 
 }
 
@@ -148,7 +148,6 @@ extern void AuthHandleAccessRead(GATT_ACCESS_IND_T *p_ind) {
 
     switch (p_ind->handle) {
         case HANDLE_SIGNED_TOKEN:
-            auth_service_cid = p_ind->cid;
             length = AUTH_TOKEN_LENGTH;
             MemCopy(value, auth_token.signed_token, length);
             break;
