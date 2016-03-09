@@ -40,6 +40,7 @@
 #include "dev_info_service.h"/* Device Information Service interface */
 #include "auth_uuids.h"
 #include "auth_service.h"
+#include "beacon.h"
 
 /*============================================================================*
  *  Private Definitions
@@ -93,10 +94,12 @@ static APP_GATT_DATA_T g_gatt_data;
  *============================================================================*/
 
 /* Add device name to advertisement or scan response */
-static void addDeviceNameToAdvData(uint16 adv_data_len, uint16 scan_data_len);
+static void addDeviceNameToScanRspData(uint16 scan_data_len);
 
 /* Set advertisement parameters */
 static void gattSetAdvertParams(void);
+
+static void gattSetScanResp(void);
 
 /*============================================================================*
  *  Private Function Implementations
@@ -122,7 +125,7 @@ static void gattSetAdvertParams(void);
  *  RETURNS
  *      Nothing
  *----------------------------------------------------------------------------*/
-static void addDeviceNameToAdvData(uint16 adv_data_len, uint16 scan_data_len)
+static void addDeviceNameToScanRspData(uint16 scan_data_len)
 {
 
     uint8 *p_device_name = NULL;        /* Device name */
@@ -139,45 +142,14 @@ static void addDeviceNameToAdvData(uint16 adv_data_len, uint16 scan_data_len)
      * which will be added by the GAP layer. 
      */
 
-    /* Check if Complete Device Name can fit in remaining advertisement 
-     * data space 
-     */
-    if((device_name_adtype_len + 1) <= (MAX_ADV_DATA_LEN - adv_data_len))
-    {
-        /* Add Complete Device Name to Advertisement Data */
-        if (LsStoreAdvScanData(device_name_adtype_len, p_device_name, 
-                      ad_src_advertise) != ls_err_none)
-        {
-            ReportPanic(app_panic_set_advert_data);
-        }
-
-    }
     /* Check if Complete Device Name can fit in Scan response message */
-    else if((device_name_adtype_len + 1) <= (MAX_ADV_DATA_LEN - scan_data_len)) 
+    if((device_name_adtype_len + 1) <= (MAX_ADV_DATA_LEN - scan_data_len)) 
     {
         /* Add Complete Device Name to Scan Response Data */
         if (LsStoreAdvScanData(device_name_adtype_len, p_device_name, 
                       ad_src_scan_rsp) != ls_err_none)
         {
             ReportPanic(app_panic_set_scan_rsp_data);
-        }
-
-    }
-    /* Check if Shortened Device Name can fit in remaining advertisement 
-     * data space 
-     */
-    else if((MAX_ADV_DATA_LEN - adv_data_len) >=
-            (SHORTENED_DEV_NAME_LEN + 2)) /* Added 2 for Length and AD Type 
-                                           * added by GAP layer
-                                           */
-    {
-        /* Add shortened device name to Advertisement data */
-        p_device_name[0] = AD_TYPE_LOCAL_NAME_SHORT;
-
-       if (LsStoreAdvScanData(SHORTENED_DEV_NAME_LEN, p_device_name, 
-                      ad_src_advertise) != ls_err_none)
-        {
-            ReportPanic(app_panic_set_advert_data);
         }
 
     }
@@ -197,6 +169,56 @@ static void addDeviceNameToAdvData(uint16 adv_data_len, uint16 scan_data_len)
 
 }
 
+static void gattSetScanResp(void) {
+    uint8 scan_data[MAX_ADV_DATA_LEN];
+    uint16 length;
+    //int8 tx_power_level = -1;
+    
+    /* Tx power level value prefixed with 'Tx Power' AD Type */
+    /* Refer to BT4.0 specification, Vol3-part-C-Section-11.1.5 */ 
+    //uint8 device_tx_power[TX_POWER_VALUE_LENGTH] = {
+    //            AD_TYPE_TX_POWER
+    //            };
+    
+        /* Device appearance */
+    //uint8 device_appearance[ATTR_LEN_DEVICE_APPEARANCE + 1] = {
+    //            AD_TYPE_APPEARANCE,
+    //            WORD_LSB(APPEARANCE_APPLICATION_VALUE),
+    //            WORD_MSB(APPEARANCE_APPLICATION_VALUE)
+    //            };
+    /* A variable to keep track of the data added to advert_data. The limit is 
+     * MAX_ADV_DATA_LEN. GAP layer will add AD Flags to advert_data which is 3
+     * bytes. Refer BT Spec 4.0, Vol 3, Part C, Sec 11.1.3:
+     *
+     * First byte is length
+     * second byte is AD TYPE = 0x1
+     * Third byte is Flags description 
+     */
+    uint16 length_added_to_adv = 3;
+    
+    /* Reset existing scan response data */
+    if(LsStoreAdvScanData(0, NULL, ad_src_scan_rsp) != ls_err_none)
+    {
+        ReportPanic(app_panic_set_scan_rsp_data);
+    }
+    
+    /* Add UUID list of the services supported by the device */
+    length = GetSupported128BitUUIDServiceList(scan_data);    
+
+    /* One added for Length field, which will be added to Adv Data by GAP 
+     * layer 
+     */
+    length_added_to_adv += (length + 1);
+
+    if (LsStoreAdvScanData(length, scan_data, 
+                        ad_src_scan_rsp) != ls_err_none)
+    {
+        ReportPanic(app_panic_set_scan_rsp_data);
+    }
+    
+    addDeviceNameToScanRspData(length_added_to_adv);
+}
+    
 /*----------------------------------------------------------------------------*
  *  NAME
  *      gattSetAdvertParams
@@ -212,41 +234,20 @@ static void addDeviceNameToAdvData(uint16 adv_data_len, uint16 scan_data_len)
  *----------------------------------------------------------------------------*/
 static void gattSetAdvertParams(void)
 {
-    uint8 advert_data[MAX_ADV_DATA_LEN];/* Advertisement packet */
-    uint16 length;                      /* Length of advertisement packet */
+    //uint8 advert_data[MAX_ADV_DATA_LEN];/* Advertisement packet */
+    //uint16 length;                      /* Length of advertisement packet */
     /* Advertisement interval, microseconds */
     uint32 adv_interval_min = GS_ADVERTISING_INTERVAL_MIN;
     uint32 adv_interval_max = GS_ADVERTISING_INTERVAL_MAX;
     /* Transmit power level, dBm */
-    int8 tx_power_level = -1;
+    //int8 tx_power_level = -1;
 
-    /* Tx power level value prefixed with 'Tx Power' AD Type */
-    /* Refer to BT4.0 specification, Vol3-part-C-Section-11.1.5 */ 
-    uint8 device_tx_power[TX_POWER_VALUE_LENGTH] = {
-                AD_TYPE_TX_POWER
-                };
 
-    /* Device appearance */
-    uint8 device_appearance[ATTR_LEN_DEVICE_APPEARANCE + 1] = {
-                AD_TYPE_APPEARANCE,
-                WORD_LSB(APPEARANCE_APPLICATION_VALUE),
-                WORD_MSB(APPEARANCE_APPLICATION_VALUE)
-                };
-
-    /* A variable to keep track of the data added to advert_data. The limit is 
-     * MAX_ADV_DATA_LEN. GAP layer will add AD Flags to advert_data which is 3
-     * bytes. Refer BT Spec 4.0, Vol 3, Part C, Sec 11.1.3:
-     *
-     * First byte is length
-     * second byte is AD TYPE = 0x1
-     * Third byte is Flags description 
-     */
-    uint16 length_added_to_adv = 3;
-
-    if((GapSetMode(gap_role_peripheral, gap_mode_discover_general,
-                        gap_mode_connect_undirected, 
-                        gap_mode_bond_no,
-                        gap_mode_security_none) != ls_err_none) ||
+    if((GapSetMode(gap_role_peripheral,
+                   gap_mode_discover_general,
+                   gap_mode_connect_undirected, 
+                   gap_mode_bond_no,
+                   gap_mode_security_none) != ls_err_none) ||
        (GapSetAdvInterval(adv_interval_min, adv_interval_max) 
                         != ls_err_none))
     {
@@ -254,33 +255,10 @@ static void gattSetAdvertParams(void)
     }
 
 
-    /* Reset existing advertising data */
-    if(LsStoreAdvScanData(0, NULL, ad_src_advertise) != ls_err_none)
-    {
-        ReportPanic(app_panic_set_advert_data);
-    }
-
-    /* Reset existing scan response data */
-    if(LsStoreAdvScanData(0, NULL, ad_src_scan_rsp) != ls_err_none)
-    {
-        ReportPanic(app_panic_set_scan_rsp_data);
-    }
 
     /* Setup ADVERTISEMENT DATA */
 
-    /* Add UUID list of the services supported by the device */
-    length = GetSupported128BitUUIDServiceList(advert_data);    
 
-    /* One added for Length field, which will be added to Adv Data by GAP 
-     * layer 
-     */
-    length_added_to_adv += (length + 1);
-
-    if (LsStoreAdvScanData(length, advert_data, 
-                        ad_src_advertise) != ls_err_none)
-    {
-        ReportPanic(app_panic_set_advert_data);
-    }
     
     /* Add 16 bit uuids */
     //length = GetSupported16BitUUIDServiceList(advert_data);
@@ -291,7 +269,7 @@ static void gattSetAdvertParams(void)
     //length_added_to_adv += (length + 1);
 
     //if (LsStoreAdvScanData(length, advert_data, 
-    //                    ad_src_advertise) != ls_err_none)
+    //                    ad_src_scan_rsp) != ls_err_none)
     //{
     //    ReportPanic(app_panic_set_advert_data);
     //}
@@ -299,40 +277,38 @@ static void gattSetAdvertParams(void)
     /* One added for Length field, which will be added to Adv Data by GAP 
      * layer 
      */
-    length_added_to_adv += (sizeof(device_appearance) + 1);
+    //length_added_to_adv += (sizeof(device_appearance) + 1);
 
     /* Add device appearance to the advertisements */
-    if (LsStoreAdvScanData(ATTR_LEN_DEVICE_APPEARANCE + 1, 
-        device_appearance, ad_src_advertise) != ls_err_none)
-    {
-        ReportPanic(app_panic_set_advert_data);
-    }
+    //if (LsStoreAdvScanData(ATTR_LEN_DEVICE_APPEARANCE + 1, 
+    //    device_appearance, ad_src_scan_rsp) != ls_err_none)
+    //{
+    //    ReportPanic(app_panic_set_advert_data);
+    //}
 
     /* Read tx power of the chip */
-    if(LsReadTransmitPowerLevel(&tx_power_level) != ls_err_none)
-    {
+    //if(LsReadTransmitPowerLevel(&tx_power_level) != ls_err_none)
+    //{
         /* Reading tx power failed */
-        ReportPanic(app_panic_read_tx_pwr_level);
-    }
+    //    ReportPanic(app_panic_read_tx_pwr_level);
+    //}
 
     /* Add the read tx power level to device_tx_power 
      * Tx power level value is of 1 byte 
      */
-    device_tx_power[TX_POWER_VALUE_LENGTH - 1] = (uint8 )tx_power_level;
+    //device_tx_power[TX_POWER_VALUE_LENGTH - 1] = (uint8 )tx_power_level;
 
     /* One added for Length field, which will be added to Adv Data by GAP 
      * layer 
      */
-    length_added_to_adv += (TX_POWER_VALUE_LENGTH + 1);
+    //length_added_to_adv += (TX_POWER_VALUE_LENGTH + 1);
 
     /* Add tx power value of device to the advertising data */
-    if (LsStoreAdvScanData(TX_POWER_VALUE_LENGTH, device_tx_power, 
-                          ad_src_advertise) != ls_err_none)
-    {
-        ReportPanic(app_panic_set_advert_data);
-    }
-
-    addDeviceNameToAdvData(length_added_to_adv, 0);
+    //if (LsStoreAdvScanData(TX_POWER_VALUE_LENGTH, device_tx_power, 
+    //                      ad_src_scan_rsp) != ls_err_none)
+    //{
+    //    ReportPanic(app_panic_set_advert_data);
+    //}
 
 }
 
@@ -488,7 +464,9 @@ extern void GattStartAdverts(void)
 
     /* Set advertisement parameters */
     gattSetAdvertParams();
-
+    SetupBeaconAdPacket();
+    gattSetScanResp();
+    
     /* Start GATT connection in Slave role */
     GattConnectReq(NULL, connect_flags);
 

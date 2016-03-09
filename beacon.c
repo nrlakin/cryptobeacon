@@ -93,7 +93,7 @@ static void appSetRandomAddress(void)
  *      Nothing.
  *
  *---------------------------------------------------------------------------*/
-extern void startBeaconAdvertising(void)
+extern void SetupBeaconAdPacket(void)
 {
     uint8 advData[MAX_ADVERT_PACKET_SIZE];
     uint16 offset = 0;
@@ -138,18 +138,11 @@ extern void startBeaconAdvertising(void)
         appSetRandomAddress();
     }
 
-    /* set the GAP Broadcaster role */
-    GapSetMode(gap_role_peripheral,
-               gap_mode_discover_general,
-               gap_mode_connect_no,
-               gap_mode_bond_no,
-               gap_mode_security_none);
-
     /* clear the existing advertisement data, if any */
     LsStoreAdvScanData(0, NULL, ad_src_advertise);
 
     /* set the advertisement interval, API accepts the value in microseconds */
-    GapSetAdvInterval(advInterval * MILLISECOND, advInterval * MILLISECOND);
+    //GapSetAdvInterval(advInterval * MILLISECOND, advInterval * MILLISECOND);
 
     /* manufacturer-specific data */
     advData[0] = AD_TYPE_MANUF;
@@ -171,6 +164,4 @@ extern void startBeaconAdvertising(void)
     /* store the advertisement data */
     LsStoreAdvScanData(advPayloadSize + 3, advData, ad_src_advertise);
 
-    /* Start broadcasting */
-    LsStartStopAdvertise(TRUE, whitelist_disabled, addressType);
 }

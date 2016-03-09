@@ -44,6 +44,6 @@
 /* Default advertising node payload size - fill the whole advertising packet */
 #define DEFAULT_ADVERT_PAYLOAD_SIZE     (MAX_ADVERT_PAYLOAD_SIZE)
 
-extern void startBeaconAdvertising(void);
+extern void SetupBeaconAdPacket(void);
 
 #endif /* _BEACON_H_ */
