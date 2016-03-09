@@ -34,6 +34,9 @@
 #define RP_ADVERTISING_INTERVAL_MIN         (1280 * MILLISECOND)
 #define RP_ADVERTISING_INTERVAL_MAX         (1280 * MILLISECOND)
 
+#define GS_ADVERTISING_INTERVAL_MIN         (300 * MILLISECOND)
+#define GS_ADVERTISING_INTERVAL_MAX         (300 * MILLISECOND)
+
 /* Maximum number of connection parameter update requests that can be sent when 
  * connected
  */

@@ -96,7 +96,7 @@ static APP_GATT_DATA_T g_gatt_data;
 static void addDeviceNameToAdvData(uint16 adv_data_len, uint16 scan_data_len);
 
 /* Set advertisement parameters */
-static void gattSetAdvertParams(TYPED_BD_ADDR_T* p_addr, bool fast_connection);
+static void gattSetAdvertParams(void);
 
 /*============================================================================*
  *  Private Function Implementations
@@ -205,20 +205,18 @@ static void addDeviceNameToAdvData(uint16 adv_data_len, uint16 scan_data_len)
  *      This function is used to set advertisement parameters.
  *
  *  PARAMETERS
- *      p_addr [in]             Bonded host address
- *      fast_connection [in]    TRUE:  Fast advertisements
- *                              FALSE: Slow advertisements
+ *      None; this application doesn't support pairing.
  *
  *  RETURNS
  *      Nothing
  *----------------------------------------------------------------------------*/
-static void gattSetAdvertParams(TYPED_BD_ADDR_T *p_addr, bool fast_connection)
+static void gattSetAdvertParams(void)
 {
     uint8 advert_data[MAX_ADV_DATA_LEN];/* Advertisement packet */
     uint16 length;                      /* Length of advertisement packet */
     /* Advertisement interval, microseconds */
-    uint32 adv_interval_min = RP_ADVERTISING_INTERVAL_MIN;
-    uint32 adv_interval_max = RP_ADVERTISING_INTERVAL_MAX;
+    uint32 adv_interval_min = GS_ADVERTISING_INTERVAL_MIN;
+    uint32 adv_interval_max = GS_ADVERTISING_INTERVAL_MAX;
     /* Transmit power level, dBm */
     int8 tx_power_level = -1;
 
@@ -245,33 +243,16 @@ static void gattSetAdvertParams(TYPED_BD_ADDR_T *p_addr, bool fast_connection)
      */
     uint16 length_added_to_adv = 3;
 
-    if(fast_connection)
-    {
-        adv_interval_min = FC_ADVERTISING_INTERVAL_MIN;
-        adv_interval_max = FC_ADVERTISING_INTERVAL_MAX;
-    }
-
     if((GapSetMode(gap_role_peripheral, gap_mode_discover_general,
                         gap_mode_connect_undirected, 
-                        gap_mode_bond_yes,
-                        gap_mode_security_unauthenticate) != ls_err_none) ||
+                        gap_mode_bond_no,
+                        gap_mode_security_none) != ls_err_none) ||
        (GapSetAdvInterval(adv_interval_min, adv_interval_max) 
                         != ls_err_none))
     {
         ReportPanic(app_panic_set_advert_params);
     }
 
-    /* Add bonded device to white list.*/
-    if(IsWhiteListEnabled())
-    {
-        /* Initial case when advertisements are started for Bonded host for 
-         * 10 seconds. White list is configured with the Bonded host address
-         */
-        if(LsAddWhiteListDevice(p_addr)!= ls_err_none)
-        {
-            ReportPanic(app_panic_add_whitelist);
-        }
-    }
 
     /* Reset existing advertising data */
     if(LsStoreAdvScanData(0, NULL, ad_src_advertise) != ls_err_none)
@@ -490,7 +471,7 @@ extern void HandleAccessWrite(GATT_ACCESS_IND_T *p_ind)
  *  RETURNS
  *      Nothing
  *----------------------------------------------------------------------------*/
-extern void GattStartAdverts(TYPED_BD_ADDR_T *p_addr, bool fast_connection)
+extern void GattStartAdverts(void)
 {
     /* Variable 'connect_flags' needs to be updated to have peer address type 
      * if Directed advertisements are supported as peer address type will 
@@ -506,22 +487,7 @@ extern void GattStartAdverts(TYPED_BD_ADDR_T *p_addr, bool fast_connection)
 #endif /* USE_STATIC_RANDOM_ADDRESS */
 
     /* Set advertisement parameters */
-    gattSetAdvertParams(p_addr, fast_connection);
-
-    /* If white list is enabled, set the controller's advertising filter policy 
-     * to "process scan and connection requests only from devices in the White 
-     * List"
-     */
-    if(IsWhiteListEnabled() && !GattIsAddressResolvableRandom(p_addr))
-    {
-#ifdef USE_STATIC_RANDOM_ADDRESS
-        connect_flags = L2CAP_CONNECTION_SLAVE_WHITELIST |
-                        L2CAP_OWN_ADDR_TYPE_RANDOM;
-#else
-        connect_flags = L2CAP_CONNECTION_SLAVE_WHITELIST |
-                        L2CAP_OWN_ADDR_TYPE_PUBLIC;
-#endif /* USE_STATIC_RANDOM_ADDRESS */
-    }
+    gattSetAdvertParams();
 
     /* Start GATT connection in Slave role */
     GattConnectReq(NULL, connect_flags);
@@ -655,17 +621,10 @@ extern bool GattIsAddressResolvableRandom(TYPED_BD_ADDR_T *p_addr)
  *----------------------------------------------------------------------------*/
 extern void GattTriggerFastAdverts(TYPED_BD_ADDR_T *p_addr)
 {
-    if(IsDeviceBonded())
-    {
-        g_gatt_data.advert_timer_value = BONDED_DEVICE_ADVERT_TIMEOUT_VALUE;
-    }
-    else
-    {
-        g_gatt_data.advert_timer_value = FAST_CONNECTION_ADVERT_TIMEOUT_VALUE;
-    }
+    g_gatt_data.advert_timer_value = FAST_CONNECTION_ADVERT_TIMEOUT_VALUE;
 
     /* Trigger fast connections */
-    GattStartAdverts(p_addr, TRUE);
+    GattStartAdverts();
 }
 
 /*----------------------------------------------------------------------------*

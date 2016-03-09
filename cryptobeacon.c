@@ -117,17 +117,6 @@ typedef struct _APP_DATA_T
      */
     uint16                     st_ucid;
 
-    /* Boolean flag to indicate whether the device is bonded */
-    bool                       bonded;
-
-    /* TYPED_BD_ADDR_T of the host to which device is bonded */
-    TYPED_BD_ADDR_T            bonded_bd_addr;
-
-    /* Diversifier associated with the Long Term Key (LTK) of the bonded
-     * device
-     */
-    uint16                     diversifier;
-
     /* Timer ID for Connection Parameter Update timer in Connected state */
     timer_id                   con_param_update_tid;
 
@@ -485,33 +474,6 @@ static void readPersistentStore(void)
      * offset being used for storing the data.
      */
 
-}
-
-/*----------------------------------------------------------------------------*
- *  NAME
- *      enableWhiteList
- *
- *  DESCRIPTION
- *      This function enables white list based advertising.
- *
- *  PARAMETERS
- *      None
- *
- *  RETURNS
- *      Nothing
- *----------------------------------------------------------------------------*/
-static void enableWhiteList(void)
-{
-    if(IsDeviceBonded())
-    {
-        if(!GattIsAddressResolvableRandom(&g_app_data.bonded_bd_addr))
-        {
-            /* Enable white list if the device is bonded and the bonded host 
-             * is not using resolvable random address.
-             */
-            g_app_data.enable_white_list = TRUE;
-        }
-    }
 }
 
 #if defined(CONNECTED_IDLE_TIMEOUT_VALUE)

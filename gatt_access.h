@@ -45,19 +45,16 @@ typedef enum
     app_state_init = 0,
 
     /* Application is performing fast undirected advertisements */
-    app_state_fast_advertising,
+    app_state_beaconing,
 
     /* Application is performing slow undirected advertisements */
-    app_state_slow_advertising,
+    app_state_server_advertising,
 
     /* Connection has been established with the host */
     app_state_connected,
 
     /* Disconnection initiated by the application */
     app_state_disconnecting,
-
-    /* Application is neither advertising nor connected to a host */
-    app_state_idle,
     
     /* Battery is dead, kill the radio. */
     app_state_dead
@@ -88,9 +85,6 @@ typedef enum
  * application to have a static random address.
  */
 /* #define USE_STATIC_RANDOM_ADDRESS */
-
-/* Timer value for remote device to re-encrypt the link using old keys */
-#define BONDING_CHANCE_TIMER            (30*SECOND)
 
 /*============================================================================*
  *  Public Data Types
@@ -158,7 +152,7 @@ extern void HandleAccessRead(GATT_ACCESS_IND_T *p_ind);
 extern void HandleAccessWrite(GATT_ACCESS_IND_T *p_ind);
 
 /* Start undirected advertisements and move to ADVERTISING state */
-extern void GattStartAdverts(TYPED_BD_ADDR_T *p_addr, bool fast_connection);
+extern void GattStartAdverts(void);
 
 /* Stop on-going advertisements */
 extern void GattStopAdverts(void);
