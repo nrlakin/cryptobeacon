@@ -18,6 +18,7 @@
     <configuration name="Release" />
    </properties>
   </file>
+  <file path="string_utils.c" />
  </folder>
  <folder name="Header Files" >
   <extension name="h" />
@@ -44,6 +45,7 @@
   <file path="power_management.h" />
   <file path="crypto.h" />
   <file path="nvm_map.h" />
+  <file path="string_utils.h" />
  </folder>
  <folder name="Assembler Files" >
   <extension name="asm" />

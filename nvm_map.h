@@ -10,6 +10,6 @@
 #define NVM_ADDR_SANITY_WORD         (0x00)
 
 /* Max size of NVM memory */
-#define NVM_MAX_APP_MEMORY_WORDS       (1)
+#define NVM_MAX_APP_MEMORY_WORDS       (2)
 
 #endif

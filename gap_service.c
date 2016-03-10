@@ -27,6 +27,8 @@
 #include "gap_service.h"    /* Interface to this file */
 #include "app_gatt_db.h"    /* GATT database definitions */
 #include "nvm_access.h"     /* Non-volatile memory access */
+#include "string_utils.h"
+#include "user_config.h"
 
 /*============================================================================*
  *  Private Data Types
@@ -55,8 +57,7 @@ static GAP_DATA_T g_gap_data;
 
 /* Default device name - added two for storing AD Type and Null ('\0') */ 
 static uint8 g_device_name[DEVICE_NAME_MAX_LENGTH + 2] = {
-AD_TYPE_LOCAL_NAME_COMPLETE, 
-'C', 'r', 'y', 'p', 't', 'o', 'b', 'e', 'a', 'c', 'o', 'n', '\0', ' ', ' ', '\0'};
+AD_TYPE_LOCAL_NAME_COMPLETE};
 
 /*============================================================================*
  *  Private Definitions
@@ -89,6 +90,17 @@ static void updateDeviceName(uint16 length, uint8 *name);
  *  Private Function Implementations
  *============================================================================*/
 
+static void generateNameFromRegions(void) {
+    uint16 major = IBEACON_MAJOR_REGION;
+    uint16 minor = IBEACON_MINOR_REGION;
+    
+    uint8 *name_ptr = g_device_name+1;  // skip AD_TYPE byte
+    *name_ptr++ = 'X';
+    name_ptr = int16ToString(major, name_ptr);
+    name_ptr = int16ToString(minor, name_ptr);
+    name_ptr = 0x00;
+}
+    
 /*----------------------------------------------------------------------------*
  *  NAME
  *      gapWriteDeviceNameToNvm
@@ -178,6 +190,7 @@ static void updateDeviceName(uint16 length, uint8 *name)
 extern void GapDataInit(void)
 {
     /* Skip first byte to move over AD Type field and point to device name */
+    generateNameFromRegions();
     g_gap_data.p_dev_name = (g_device_name + 1);
     g_gap_data.length = StrLen((char *)g_gap_data.p_dev_name);
 }
@@ -337,6 +350,7 @@ extern void GapInitWriteDataToNVM(uint16 *p_offset)
     /* The NVM offset at which GAP Service data will be stored */
     g_gap_data.nvm_offset = *p_offset;
 
+    
     /* Write device name to NVM */
     gapWriteDeviceNameToNvm();
 

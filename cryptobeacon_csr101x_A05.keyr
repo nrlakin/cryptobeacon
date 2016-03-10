@@ -2,7 +2,7 @@
 
 // (0001) - Bluetooth device address
 // [N][e][i][l][B][1]
-&BDADDR = 4e65 696c 4202
+&BDADDR = 4e65 696c 4201
 
 // (0002) - Crystal frequency trim
 &CRYSTAL_FTRIM = 0020
@@ -17,7 +17,7 @@
 // The following Identity Root value should be changed while flashing each chip. This
 // will ensure different static addresses for different chips.
 // (0017) - Identity Root
-&IDENTITY_ROOT = 00 00 00 00 00 00 00 02
+&IDENTITY_ROOT = 00 00 00 00 00 00 00 01
 
 // (0007) - Transmit power level
 &TX_POWER_LEVEL = 4

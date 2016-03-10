@@ -39,7 +39,9 @@ primary_service {
     characteristic {
 	    uuid : UUID_DEVICE_NAME,
 	    name : "DEVICE_NAME",
-	    properties : [read, write],
+	    /*properties : [read, write],*/
+        properties : [read],
+        
 #ifdef PAIRING_SUPPORT
         flags : [FLAG_IRQ, FLAG_ENCR_W],
 #else

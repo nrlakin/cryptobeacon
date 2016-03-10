@@ -22,7 +22,9 @@
  * compiled. This flag may be disabled for the applications that do not require
  * pairing.
  */
-//#define PAIRING_SUPPORT
+
+#define IBEACON_MAJOR_REGION    0xBBBB
+#define IBEACON_MINOR_REGION    0xCCCC
 
 /* This macro when defined enables the debug output on UART */
 //#define DEBUG_OUTPUT_ENABLED
